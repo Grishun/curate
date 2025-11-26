@@ -1,0 +1,47 @@
+openapi: 3.0.0
+
+info:
+  title: Curate - crypto-currency rates service
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:8080
+
+paths:
+  /health/live:
+    get:
+      summary: Checks whether service is alive
+      operationId: GetHealthLive
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/HealthLiveResponse'
+
+  /api/rates:
+    get:
+      operationId: GetRates
+      summary: Returns the latest rate for currency using its code
+      responses:
+        '200':
+          description: 200 response
+          content:
+            application/json:
+              schema:
+
+
+
+  /api/rates/{code}:
+
+components:
+  schemas:
+    HealthLiveResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok

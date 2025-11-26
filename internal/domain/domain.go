@@ -8,11 +8,9 @@ type HistoryPoint struct {
 }
 
 type Rate struct {
-	Code      string         `json:"code"`
-	Quote     string         `json:"quote"`
-	Provider  string         `json:"provider"`
-	History   []HistoryPoint `json:"history"`
-	Value     float64        `json:"value"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	Metadata  map[string]any `json:"metadata"`
+	Code     string         `json:"code"`
+	Quote    string         `json:"quote"`
+	Provider string         `json:"provider"`
+	History  []HistoryPoint `json:"history"`
+	Metadata map[string]any `json:"metadata"`
 }
