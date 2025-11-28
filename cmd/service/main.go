@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/Grishun/curate/internal/config"
 	"log"
 	"os"
 	"time"
+
+	"github.com/Grishun/curate/internal/config"
 
 	"github.com/urfave/cli/v3"
 )
