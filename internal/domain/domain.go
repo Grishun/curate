@@ -14,3 +14,9 @@ type Rate struct {
 	History  []HistoryPoint `json:"history"`
 	Metadata map[string]any `json:"metadata"`
 }
+
+type Error struct {
+	StatusCode uint16
+	Message    string
+	timestamp  time.Time
+}

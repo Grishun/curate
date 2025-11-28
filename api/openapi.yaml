@@ -1,47 +1,149 @@
 openapi: 3.0.0
-
 info:
-  title: Curate - crypto-currency rates service
+  title: curate api contract
   version: 1.0.0
+  description: curate is service that allows you to get crypto currency rates to usd and persist their history
+  contact:
+    name: Grigorii Reuk
+    email: grishudia@gmail.com
 
 servers:
   - url: http://127.0.0.1:8080
 
 paths:
-  /health/live:
+  # getAllRates endpoint
+  /rate:
     get:
-      summary: Checks whether service is alive
-      operationId: GetHealthLive
+      description: returns the latest rates for all available currencies
+      operationId: getAllRates
+      tags:
+        - rate_ops
       responses:
         '200':
-          description: Service is up
+          description: successfully received all rates
           content:
             application/json:
               schema:
-                $ref: '#components/schemas/HealthLiveResponse'
-
-  /api/rates:
-    get:
-      operationId: GetRates
-      summary: Returns the latest rate for currency using its code
-      responses:
-        '200':
-          description: 200 response
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rate'
+        default:
+          description: rates getting is unsuccessful
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Error'
 
+    # getRateByCode endpoint
+  /rate/{code}:
+    get:
+      description: returns a rate for specific currency by its code (e.g. BTC, ETH, etc.)
+      operationId: getRateByCode
+      tags:
+        - rate_ops
+      parameters:
+        - name: code
+          in: path
+          required: true
+          example: "BTC"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: rate for code pulled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rate'
+        default:
+          description: rate getting is unsuccessful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
+    # health check endpoint
+  /health:
+    get:
+      description: checks whether service is alive and ready to receive queries
+      operationId: health
+      responses:
+        '200':
+          description: service is alive and ready to get queries
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: the service is down
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
-  /api/rates/{code}:
 
 components:
   schemas:
-    HealthLiveResponse:
+    # history point object
+    HistoryPoint:
       type: object
       required:
-        - status
+        - value
+        - timestamp
       properties:
-        status:
+        value:
+          type: number
+          format: double
+          example: 12345.6789
+        timestamp:
           type: string
-          example: ok
+          format: date-time
+
+    # rate object
+    Rate:
+      type: object
+      required:
+        - code
+        - history
+        - quote
+        - provider
+      properties:
+        code:
+          type: string
+          example: "BTC"
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryPoint'
+        quote:
+          type: string
+          example: "USD"
+        provider:
+          type: string
+          format: uri
+          example: "https://www.coingecko.com"
+
+      # error object
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          description: http status code
+          type: integer
+          example: 200
+        message:
+          description: description of received error
+          type: string
+          example: Entity [Post] with id = [123456] not found.
+        timestamp:
+          description: time when the error was received
+          type: string
+          format: date-time
+          example: "2025-12-19T16:39:57.87-08:00"
+
+
+

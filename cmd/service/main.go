@@ -61,7 +61,11 @@ func main() {
 }
 
 func run(ctx context.Context, c *cli.Command) error {
-	cfg := config.New(c)
+	_ = config.New(c)
+
+	//x := 12345e-3
+	//fmt.Printf("%.20f\nf", x)
+	//fmt.Print(reflect.ValueOf(x).Kind())
 
 	return nil
 }
