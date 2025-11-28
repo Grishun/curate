@@ -16,7 +16,5 @@ type Rate struct {
 }
 
 type Error struct {
-	StatusCode uint16
-	Message    string
-	timestamp  time.Time
+	Message string
 }
