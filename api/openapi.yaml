@@ -101,12 +101,12 @@ components:
     Error:
       type: object
       required:
-        - code
+        - message
       properties:
-        code:
-          description: Http status code
-          type: integer
-          example: 200
+        message:
+          description: HTTP error message
+          type: string
+          example: "failed to get rates due to..."
 
 
 
