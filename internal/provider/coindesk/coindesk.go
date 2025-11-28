@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/url"
 	"strings"
-	"time"
 
 	"resty.dev/v3"
 )
@@ -12,12 +11,11 @@ import (
 const multSymbolsPrice = "/data/pricemulti"
 
 type Provider struct {
-	uri             string
-	token           string
-	pollingInterval time.Duration
-	httpClient      *resty.Client //FIXME: use interface instead (implement in domain)
-	quote           string
-	currencies      []string
+	uri        string
+	token      string
+	httpClient *resty.Client //FIXME: use interface instead (implement in domain)
+	quote      string
+	currencies []string
 }
 
 func New(opts ...Option) *Provider {
@@ -28,12 +26,11 @@ func New(opts ...Option) *Provider {
 	}
 
 	return &Provider{
-		uri:             options.uri,
-		token:           options.token,
-		pollingInterval: options.pollingInterval,
-		httpClient:      options.httpClient,
-		quote:           options.quote,
-		currencies:      options.currencies,
+		uri:        options.uri,
+		token:      options.token,
+		httpClient: options.httpClient,
+		quote:      options.quote,
+		currencies: options.currencies,
 	}
 }
 
