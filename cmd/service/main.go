@@ -23,7 +23,7 @@ func main() {
 			},
 
 			&cli.DurationFlag{
-				Name:    "worker-interval",
+				Name:    "provider-interval",
 				Value:   time.Minute,
 				Sources: cli.EnvVars("CURATE_WORKER_INTERVAL"),
 			},

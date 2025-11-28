@@ -19,7 +19,7 @@ type Config struct {
 func New(c *cli.Command) *Config {
 	cfg := Config{
 		HTTPPort:       c.String("http-port"),
-		WorkerInterval: c.Duration("worker-interval"),
+		WorkerInterval: c.Duration("provider-interval"),
 		Currencies:     c.StringSlice("currencies"),
 		Quote:          c.String("quote"),
 		CoindeskURL:    c.String("coindesk-url"),

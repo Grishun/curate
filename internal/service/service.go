@@ -9,7 +9,7 @@ import (
 type Service struct {
 	logger  domain.Logger
 	storage domain.Storage
-	//TODO: add worker
+	//TODO: add provider
 }
 
 type Option func(*Options)
