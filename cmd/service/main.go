@@ -40,6 +40,12 @@ func main() {
 				Sources: cli.EnvVars("CURATE_QUOTE"),
 			},
 
+			&cli.IntFlag{
+				Name:    "rate-history-limit",
+				Value:   10,
+				Sources: cli.EnvVars("RATE_HISTORY_LIMIT"),
+			},
+
 			&cli.StringFlag{
 				Name:    "coindesk-url",
 				Value:   "https://min-api.cryptocompare.com",

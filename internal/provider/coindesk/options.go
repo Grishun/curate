@@ -9,7 +9,7 @@ type Option func(*Options)
 type Options struct {
 	uri        string
 	token      string
-	httpClient *resty.Client //FIXME: use interface instead (implement in domain)
+	httpClient *resty.Client // FIXME: use interface instead (implement in domain)
 	quote      string
 	currencies []string
 }

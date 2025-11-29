@@ -34,7 +34,7 @@ paths:
   /api/v1/rates/{code}:
     get:
       description: Returns a rate for specific currency by its code (e.g. BTC, ETH, etc.)
-      operationId: GetRateByCode
+      operationId: GetRateByCurrency
       tags:
         - rate_ops
       parameters:
@@ -78,12 +78,14 @@ components:
     Rate:
       type: object
       required:
-        - code
+        - currency
         - history
+        - value
+        - timestamp
         - quote
         - provider
       properties:
-        code:
+        currency:
           type: string
           example: "BTC"
         history:
@@ -97,6 +99,14 @@ components:
           type: string
           format: uri
           example: "https://www.coingecko.com"
+        value:
+          type: number
+          format: double
+          example: 12345.6789
+        timestamp:
+          type: string
+          format: date-time
+          example: "2021-01-01T00:00:00Z"
 
     Error:
       type: object
