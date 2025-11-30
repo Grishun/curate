@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"runtime"
 	"time"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -24,13 +25,21 @@ func New(opts ...Option) *Service {
 		opt(options)
 	}
 
+	scheduler, err := gocron.NewScheduler(
+		gocron.WithLogger(options.logger),
+		gocron.WithLimitConcurrentJobs(uint(runtime.GOMAXPROCS(0)), gocron.LimitModeReschedule),
+	)
+	if err != nil {
+		options.logger.Error("failed to create scheduler", "error", err)
+	}
+
 	return &Service{
 		logger:          options.logger,
 		storage:         options.storage,
 		providers:       options.providers,
 		pollingInterval: options.pollingInterval,
 		quote:           options.quote,
-		scheduler:       options.scheduler,
+		scheduler:       scheduler,
 	}
 }
 
@@ -48,15 +57,13 @@ func (s *Service) Start(ctx context.Context) error {
 
 	<-ctx.Done()
 
-	return nil
+	return s.Stop(ctx)
 }
 
 func (s *Service) Stop(_ context.Context) error {
 	s.logger.Debug("stopping service")
-	s.scheduler.Shutdown()
-	s.logger.Debug("fetch scheduler stopped")
 
-	return nil
+	return s.scheduler.Shutdown()
 }
 
 func (s *Service) fetchAndStore(ctx context.Context) {

@@ -6,8 +6,8 @@ import (
 )
 
 type Storage interface {
-	Get(ctx context.Context, currecny string) (Rate, error)
-	GetAll(ctx context.Context) ([]Rate, error)
+	Get(ctx context.Context, currecny string) ([]Rate, error)
+	GetAll(ctx context.Context) (map[string][]Rate, error)
 
 	Insert(ctx context.Context, rates ...Rate) error
 }
