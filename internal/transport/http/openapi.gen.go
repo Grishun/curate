@@ -5,6 +5,7 @@ package http
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,14 +34,24 @@ type Rate struct {
 	Value     float64        `json:"value"`
 }
 
+// GetAllRatesParams defines parameters for GetAllRates.
+type GetAllRatesParams struct {
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetRateByCurrencyParams defines parameters for GetRateByCurrency.
+type GetRateByCurrencyParams struct {
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /api/v1/rates)
-	GetAllRates(c *fiber.Ctx) error
+	GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error
 
 	// (GET /api/v1/rates/{currency})
-	GetRateByCurrency(c *fiber.Ctx, currency string) error
+	GetRateByCurrency(c *fiber.Ctx, currency string, params GetRateByCurrencyParams) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -53,7 +64,25 @@ type MiddlewareFunc fiber.Handler
 // GetAllRates operation middleware
 func (siw *ServerInterfaceWrapper) GetAllRates(c *fiber.Ctx) error {
 
-	return siw.Handler.GetAllRates(c)
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAllRatesParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	return siw.Handler.GetAllRates(c, params)
 }
 
 // GetRateByCurrency operation middleware
@@ -69,7 +98,23 @@ func (siw *ServerInterfaceWrapper) GetRateByCurrency(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter currency: %w", err).Error())
 	}
 
-	return siw.Handler.GetRateByCurrency(c, currency)
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetRateByCurrencyParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
+	}
+
+	return siw.Handler.GetRateByCurrency(c, currency, params)
 }
 
 // FiberServerOptions provides options for the Fiber server.

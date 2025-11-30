@@ -15,6 +15,14 @@ paths:
       operationId: GetAllRates
       tags:
         - rate_ops
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          example: 10
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: Successfully received all rates
@@ -43,8 +51,15 @@ paths:
           required: true
           example: "BTC"
           schema:
-            pattern: "^[A-Z]{3}$"
+            pattern: "^[A-Z]{3}$" # TODO: fix regexp
             type: string
+        - name: limit
+          in: query
+          required: false
+          example: 10
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: Rate for specific currency pulled successfully

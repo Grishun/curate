@@ -66,6 +66,14 @@ func (s *Service) Stop(_ context.Context) error {
 	return s.scheduler.Shutdown()
 }
 
+func (s *Service) GetRate(ctx context.Context, currency string) ([]domain.Rate, error) {
+	return s.storage.Get(ctx, currency)
+}
+
+func (s *Service) GetRates(ctx context.Context) (map[string][]domain.Rate, error) {
+	return s.storage.GetAll(ctx)
+}
+
 func (s *Service) fetchAndStore(ctx context.Context) {
 	for _, provider := range s.providers {
 		result, err := provider.Fetch(ctx)

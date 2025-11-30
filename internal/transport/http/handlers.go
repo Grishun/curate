@@ -1,24 +1,35 @@
 package http
 
 import (
+	"github.com/Grishun/curate/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
 
-type Server struct{}
+type Handlers struct {
+	service *service.Service
+}
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ ServerInterface = (*Server)(nil)
+var _ ServerInterface = (*Handlers)(nil)
 
-func New() Server {
-	return Server{}
+func NewHandlers(srv *service.Service) *Handlers {
+	return &Handlers{service: srv}
 }
 
-func (s *Server) GetAllRates(c *fiber.Ctx) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
+	ratesMap, err := s.service.GetRates(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(ratesMap)
 }
 
-func (s *Server) GetRateByCode(c *fiber.Ctx, code string) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRateByCurrencyParams) error {
+	ratesMap, err := s.service.GetRate(c.Context(), currency)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(ratesMap)
 }

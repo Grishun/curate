@@ -13,6 +13,7 @@ type Config struct {
 	Quote          string        `yaml:"quote"`
 	CoindeskURL    string        `yaml:"coindesk_url"`
 	CoindeskToken  string        `yaml:"coindesk_token"`
+	//TODO: add limit
 }
 
 // New parse config from urfave/cli flags
