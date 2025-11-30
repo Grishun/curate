@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCoindeskProvider(t *testing.T) {
+func TestCoindeskProviderMocked(t *testing.T) {
 	mockedCoinDesk := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -20,6 +20,21 @@ func TestCoindeskProvider(t *testing.T) {
 
 	provider := New(WithURI(mockedCoinDesk.URL))
 	require.Equal(t, "127.0.0.1", provider.Name())
+
+	responseMap, err := provider.Fetch(context.Background())
+	require.NoError(t, err)
+	require.NotEmpty(t, responseMap)
+
+	for currency, rate := range responseMap {
+		t.Logf("currency %s rate %f", currency, rate)
+		require.NotZero(t, rate)
+		require.NotZero(t, currency)
+	}
+}
+
+func TestCoindeskProvider(t *testing.T) {
+	provider := New(WithURI("https://min-api.cryptocompare.com"))
+	require.Equal(t, "min-api.cryptocompare.com", provider.Name())
 
 	responseMap, err := provider.Fetch(context.Background())
 	require.NoError(t, err)

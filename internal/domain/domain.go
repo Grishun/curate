@@ -1,6 +1,12 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"io"
+	"net/http"
+	"net/url"
+	"time"
+)
 
 type HistoryPoint struct {
 	Timestamp time.Time `json:"timestamp"`
@@ -15,4 +21,16 @@ type Rate struct {
 	Value     float64   `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
 	//Metadata  map[string]any `json:"metadata"`
+}
+
+type RequestOption func(opt *RequestOptions)
+
+type RequestOptions struct {
+	Ctx          context.Context
+	Headers      http.Header
+	QueryParams  url.Values
+	Body         io.Reader
+	URI          string
+	Method       string
+	UnmarshallTo any
 }

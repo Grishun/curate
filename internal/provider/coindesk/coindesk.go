@@ -2,12 +2,12 @@ package coindesk
 
 import (
 	"context"
+	http2 "net/http"
 	"net/url"
 	"strings"
 
+	"github.com/Grishun/curate/internal/clients/http"
 	"github.com/Grishun/curate/internal/domain"
-	"github.com/Grishun/curate/internal/log"
-	"resty.dev/v3"
 )
 
 const multSymbolsPrice = "/data/pricemulti"
@@ -15,7 +15,7 @@ const multSymbolsPrice = "/data/pricemulti"
 type Coindesk struct {
 	uri        string
 	token      string
-	httpClient *resty.Client //FIXME: use interface instead (implement in domain)
+	httpClient http.Client
 	quote      string
 	currencies []string
 	logger     domain.Logger
@@ -34,7 +34,7 @@ func New(opts ...Option) *Coindesk {
 		httpClient: options.httpClient,
 		quote:      options.quote,
 		currencies: options.currencies,
-		logger:     log.NewSlog(),
+		logger:     options.logger,
 	}
 }
 
@@ -47,22 +47,23 @@ func (c *Coindesk) Name() string {
 func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 	result := make(map[string]map[string]float64)
 
-	params := map[string]string{
-		"fsyms":   strings.Join(c.currencies, ","),
-		"tsyms":   c.quote,
-		"api_key": c.token,
-	}
+	params := url.Values{}
+	params.Add("fsyms", strings.Join(c.currencies, ","))
+	params.Add("tsyms", c.quote)
+	params.Add("api_key", c.token)
 
-	_, err := c.httpClient.R().
-		SetContext(ctx).
-		SetQueryParams(params).
-		SetHeader("Content-type", "application/json").
-		SetHeader("charset", "UTF-8").
-		SetAuthScheme("Bearer").
-		SetAuthToken(c.token).
-		SetResult(&result).
-		SetLogger(c.logger).
-		Get(c.uri + multSymbolsPrice)
+	headers := make(http2.Header)
+	headers.Add("Content-type", "application/json")
+	headers.Add("charset", "UTF-8")
+
+	_, err := c.httpClient.NewRequest(
+		http.WithMethod(http2.MethodGet),
+		http.WithQueryParams(params),
+		http.WithHeaders(headers),
+		http.WithURI(c.uri+multSymbolsPrice),
+		http.WithRequestContext(ctx),
+		http.WithUnmarshallTo(&result),
+	)
 
 	return convert(result, c.quote), err
 }

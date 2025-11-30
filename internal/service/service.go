@@ -98,4 +98,5 @@ func (s *Service) fetchAndStore(ctx context.Context) {
 			s.logger.Error("failed to insert rates to storage", "provider", provider, "error", err)
 		}
 	}
+
 }

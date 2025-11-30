@@ -1,7 +1,9 @@
 package coindesk
 
 import (
-	"resty.dev/v3"
+	"github.com/Grishun/curate/internal/clients/http"
+	"github.com/Grishun/curate/internal/domain"
+	"github.com/Grishun/curate/internal/log"
 )
 
 type Option func(*Options)
@@ -9,18 +11,20 @@ type Option func(*Options)
 type Options struct {
 	uri        string
 	token      string
-	httpClient *resty.Client // FIXME: use interface instead (implement in domain)
+	httpClient http.Client
 	quote      string
 	currencies []string
+	logger     domain.Logger
 }
 
 func NewOptions() *Options {
 	return &Options{
 		uri:        "https://min-api.cryptocompare.com",
 		token:      "", // not required for min api
-		httpClient: resty.New(),
+		httpClient: http.NewClient(),
 		quote:      "USD",
 		currencies: []string{"BTC", "ETH", "TRX"}, //TODO: create custom type for codes
+		logger:     log.NewSlog(),
 	}
 }
 
@@ -36,7 +40,7 @@ func WithToken(token string) Option {
 	}
 }
 
-func WithHTTPClient(httpClient *resty.Client) Option {
+func WithHTTPClient(httpClient http.Client) Option {
 	return func(options *Options) {
 		options.httpClient = httpClient
 	}
@@ -51,5 +55,11 @@ func WithQuote(quote string) Option {
 func WithCurrencies(currencies ...string) Option {
 	return func(options *Options) {
 		options.currencies = currencies
+	}
+}
+
+func WithLogger(l domain.Logger) Option {
+	return func(options *Options) {
+		options.logger = l
 	}
 }

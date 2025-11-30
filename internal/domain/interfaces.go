@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"log/slog"
+	"net/http"
 )
 
 type Storage interface {
@@ -27,4 +28,8 @@ type Logger interface {
 type Provider interface {
 	Name() string
 	Fetch(ctx context.Context) (map[string]float64, error)
+}
+
+type Client interface {
+	NewRequest(opts ...RequestOption) (*http.Response, error)
 }
