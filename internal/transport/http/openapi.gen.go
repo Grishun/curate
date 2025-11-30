@@ -39,8 +39,8 @@ type ServerInterface interface {
 	// (GET /api/v1/rates)
 	GetAllRates(c *fiber.Ctx) error
 
-	// (GET /api/v1/rates/{code})
-	GetRateByCurrency(c *fiber.Ctx, code string) error
+	// (GET /api/v1/rates/{currency})
+	GetRateByCurrency(c *fiber.Ctx, currency string) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -61,15 +61,15 @@ func (siw *ServerInterfaceWrapper) GetRateByCurrency(c *fiber.Ctx) error {
 
 	var err error
 
-	// ------------- Path parameter "code" -------------
-	var code string
+	// ------------- Path parameter "currency" -------------
+	var currency string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "code", c.Params("code"), &code, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "currency", c.Params("currency"), &currency, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter code: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter currency: %w", err).Error())
 	}
 
-	return siw.Handler.GetRateByCurrency(c, code)
+	return siw.Handler.GetRateByCurrency(c, currency)
 }
 
 // FiberServerOptions provides options for the Fiber server.
@@ -95,6 +95,6 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/api/v1/rates", wrapper.GetAllRates)
 
-	router.Get(options.BaseURL+"/api/v1/rates/:code", wrapper.GetRateByCurrency)
+	router.Get(options.BaseURL+"/api/v1/rates/:currency", wrapper.GetRateByCurrency)
 
 }

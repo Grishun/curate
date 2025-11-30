@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMemoryStorage(t *testing.T) {
-	storage := NewMemoryStorage()
+func TestMemoryStorageGet(t *testing.T) {
+	storage := New()
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
 	ratesQty := 5
@@ -20,25 +20,45 @@ func TestMemoryStorage(t *testing.T) {
 		storage.Insert(context.Background(), generateTestRates(currency, ratesQty)...)
 	}
 
+	//
 	for _, currency := range currencies {
-		rate, err := storage.Get(context.Background(), currency)
+		rates, err := storage.Get(context.Background(), currency)
 		require.NoError(t, err)
 
-		require.NotZero(t, rate.Value)
-		require.NotZero(t, rate.Timestamp)
-		require.Equal(t, currency, rate.Currency)
-		require.Equal(t, "USD", rate.Quote)
-		require.Equal(t, "https://min-api.cryptocompare.com", rate.Provider)
-
-		require.Len(t, rate.History, ratesQty)
-		for _, historyPoint := range rate.History {
-			require.NotZero(t, historyPoint.Value)
-			require.NotZero(t, historyPoint.Timestamp)
+		require.Len(t, rates, ratesQty)
+		for _, rate := range rates {
+			require.NotZero(t, rate.Value)
+			require.NotZero(t, rate.Timestamp)
+			require.Equal(t, rate.Provider, "https://min-api.cryptocompare.com")
+			require.Equal(t, rate.Quote, "USD")
 		}
+	}
+}
 
-		require.Equal(t, rate.History[ratesQty-1].Value, rate.Value)
+func TestMemoryStorageGetAll(t *testing.T) {
+	storage := New()
 
-		require.Len(t, storage.data[currency].History, ratesQty)
+	currencies := []string{"BTC", "ETH", "LUNA"}
+	ratesQty := 5
+
+	for _, currency := range currencies {
+		storage.Insert(context.Background(), generateTestRates(currency, ratesQty)...)
+	}
+
+	ratesMap, err := storage.GetAll(context.Background())
+	require.NoError(t, err)
+	require.Len(t, ratesMap, len(currencies))
+
+	for currency, rates := range ratesMap {
+		require.Contains(t, currencies, currency)
+		require.Len(t, rates, ratesQty)
+
+		for _, rate := range rates {
+			require.NotZero(t, rate.Value)
+			require.NotZero(t, rate.Timestamp)
+			require.Equal(t, rate.Provider, "https://min-api.cryptocompare.com")
+			require.Equal(t, rate.Quote, "USD")
+		}
 	}
 }
 
@@ -50,7 +70,6 @@ func generateTestRates(currency string, qty int) []domain.Rate {
 			Currency:  currency,
 			Quote:     "USD",
 			Provider:  "https://min-api.cryptocompare.com",
-			History:   []domain.HistoryPoint{},
 			Value:     rand.Float64(),
 			Timestamp: time.Now(),
 		}

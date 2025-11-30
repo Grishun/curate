@@ -31,14 +31,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/v1/rates/{code}:
+  /api/v1/rates/{currency}:
     get:
-      description: Returns a rate for specific currency by its code (e.g. BTC, ETH, etc.)
+      description: Returns a rate for specific currency by its currency code (e.g. BTC, ETH, etc.)
       operationId: GetRateByCurrency
       tags:
         - rate_ops
       parameters:
-        - name: code
+        - name: currency
           in: path
           required: true
           example: "BTC"
@@ -47,7 +47,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Rate for specific code pulled successfully
+          description: Rate for specific currency pulled successfully
           content:
             application/json:
               schema:

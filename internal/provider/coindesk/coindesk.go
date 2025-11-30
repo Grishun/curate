@@ -61,9 +61,8 @@ func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 		SetAuthScheme("Bearer").
 		SetAuthToken(c.token).
 		SetResult(&result).
+		SetLogger(c.logger).
 		Get(c.uri + multSymbolsPrice)
-
-	c.logger.Debug("coindesk responded with", "result", result, "error", err)
 
 	return convert(result, c.quote), err
 }

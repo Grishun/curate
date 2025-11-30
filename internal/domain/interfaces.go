@@ -6,7 +6,7 @@ import (
 )
 
 type Storage interface {
-	Get(ctx context.Context, code string) (Rate, error)
+	Get(ctx context.Context, currecny string) (Rate, error)
 	GetAll(ctx context.Context) ([]Rate, error)
 
 	Insert(ctx context.Context, rates ...Rate) error
@@ -18,6 +18,10 @@ type Logger interface {
 	Info(msg string, args ...any)
 	Warn(msg string, args ...any)
 	Error(msg string, args ...any)
+
+	Errorf(format string, v ...any)
+	Warnf(format string, v ...any)
+	Debugf(format string, v ...any)
 }
 
 type Provider interface {
