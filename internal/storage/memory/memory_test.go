@@ -14,7 +14,7 @@ func TestMemoryStorageGet(t *testing.T) {
 	storage := New(10)
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
-	ratesQty := 10
+	ratesQty := 15
 
 	for _, currency := range currencies {
 		storage.Insert(context.Background(), generateTestRates(currency, ratesQty)...)
@@ -39,7 +39,7 @@ func TestMemoryStorageGetAll(t *testing.T) {
 	storage := New(10)
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
-	ratesQty := 10
+	ratesQty := 15
 
 	for _, currency := range currencies {
 		err := storage.Insert(context.Background(), generateTestRates(currency, ratesQty)...)

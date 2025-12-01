@@ -59,11 +59,11 @@ func (s *Service) Stop(_ context.Context) error {
 }
 
 func (s *Service) GetRate(ctx context.Context, currency string, limit uint) ([]domain.Rate, error) {
-	return s.options.storage.Get(ctx, currency)
+	return s.options.storage.Get(ctx, currency, limit)
 }
 
 func (s *Service) GetRates(ctx context.Context, limit uint) (map[string][]domain.Rate, error) {
-	return s.options.storage.GetAll(ctx)
+	return s.options.storage.GetAll(ctx, limit)
 }
 
 func (s *Service) fetchAndStore(ctx context.Context) {
