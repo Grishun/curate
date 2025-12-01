@@ -40,3 +40,11 @@ func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRa
 
 	return c.JSON(ratesMap)
 }
+
+func (s *Handlers) HealthCheck(c *fiber.Ctx) error {
+	if err := s.service.HealthCheck(c.Context()); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}

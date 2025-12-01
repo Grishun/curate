@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -14,11 +15,11 @@ type Memory struct {
 	historyLimit uint
 }
 
-func New() *Memory {
+func New(historyLimit uint) *Memory {
 	return &Memory{
 		mu:           sync.RWMutex{},
 		data:         make(map[string]ratebuffer.Buffer),
-		historyLimit: 10,
+		historyLimit: historyLimit,
 	}
 }
 
@@ -32,6 +33,10 @@ func (m *Memory) GetHistoryLimit() uint {
 func (m *Memory) Get(_ context.Context, currency string, limit uint) ([]domain.Rate, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if _, ok := m.data[currency]; !ok {
+		return nil, errors.New("currency not found")
+	}
 
 	return m.data[currency].LastNRates(limit), nil
 }
@@ -65,5 +70,9 @@ func (m *Memory) Insert(_ context.Context, rates ...domain.Rate) error {
 		m.data[newRate.Currency] = rateBuffer
 	}
 
+	return nil
+}
+
+func (m *Memory) HealthCheck(_ context.Context) (err error) {
 	return nil
 }

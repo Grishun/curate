@@ -51,7 +51,7 @@ paths:
           required: true
           example: "BTC"
           schema:
-            pattern: "^[A-Z]{3}$" # TODO: fix regexp
+            pattern: "^[A-Z]{3, 10}$"
             type: string
         - name: limit
           in: query
@@ -73,6 +73,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /api/v1/health:
+    get:
+      description: returns 204 if service is up and running
+      operationId: HealthCheck
+      responses:
+        '204':
+          description: Service is up and running
+        default:
+          description: Service is down
 
 components:
   schemas:

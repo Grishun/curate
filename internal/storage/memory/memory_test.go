@@ -11,7 +11,7 @@ import (
 )
 
 func TestMemoryStorageGet(t *testing.T) {
-	storage := New()
+	storage := New(10)
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
 	ratesQty := 10
@@ -36,7 +36,7 @@ func TestMemoryStorageGet(t *testing.T) {
 }
 
 func TestMemoryStorageGetAll(t *testing.T) {
-	storage := New()
+	storage := New(10)
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
 	ratesQty := 10

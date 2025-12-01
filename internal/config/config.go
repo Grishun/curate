@@ -14,7 +14,7 @@ type Config struct {
 	Quote           string        `yaml:"quote"`
 	CoindeskURL     string        `yaml:"coindesk_url"`
 	CoindeskToken   string        `yaml:"coindesk_token"`
-	//TODO: add limit
+	HistoryLimit    uint
 }
 
 // New parse config from urfave/cli flags and create Config struct
@@ -27,6 +27,7 @@ func New(c *cli.Command) *Config {
 		Quote:           c.String("quote"),
 		CoindeskURL:     c.String("coindesk-url"),
 		CoindeskToken:   c.String("coindesk-token"),
+		HistoryLimit:    c.Uint("history-limit"),
 	}
 
 	return &cfg

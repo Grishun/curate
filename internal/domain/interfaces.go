@@ -9,10 +9,11 @@ import (
 type Storage interface {
 	Get(ctx context.Context, currecny string, limit uint) ([]Rate, error)
 	GetAll(ctx context.Context, limit uint) (map[string][]Rate, error)
-
 	GetHistoryLimit() uint
 
 	Insert(ctx context.Context, rates ...Rate) error
+
+	HealthCheck(ctx context.Context) error
 }
 
 type Logger interface {
@@ -29,7 +30,7 @@ type Logger interface {
 
 type Provider interface {
 	Name() string
-	Fetch(ctx context.Context) (map[string]float64, error)
+	Fetch(ctx context.Context) (map[string]float64, error) // TODO: think about health check for storage
 }
 
 type Client interface {

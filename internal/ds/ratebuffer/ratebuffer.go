@@ -16,7 +16,8 @@ type Buffer interface {
 }
 
 type RateBuffer struct {
-	ring *ring.Ring
+	ring           *ring.Ring
+	elementsNumber uint
 }
 
 func New(len uint) *RateBuffer {
@@ -28,11 +29,14 @@ func New(len uint) *RateBuffer {
 func (rb *RateBuffer) Push(rate domain.Rate) {
 	rb.ring.Value = rate
 	rb.ring = rb.ring.Move(1)
+	if rb.elementsNumber < rb.Len() { // TODO: reconsider this logic
+		rb.elementsNumber++
+	}
 }
 
 func (rb *RateBuffer) LastNRates(n uint) []domain.Rate {
-	if rb.Len() < n {
-		n = rb.Len()
+	if rb.elementsNumber < n {
+		n = rb.elementsNumber
 	}
 
 	result := make([]domain.Rate, n)

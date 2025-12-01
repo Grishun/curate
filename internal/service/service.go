@@ -91,3 +91,7 @@ func (s *Service) fetchAndStore(ctx context.Context) {
 		}
 	}
 }
+
+func (s *Service) HealthCheck(ctx context.Context) (err error) {
+	return s.options.storage.HealthCheck(ctx)
+}

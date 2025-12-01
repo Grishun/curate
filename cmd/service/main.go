@@ -64,7 +64,7 @@ func main() {
 				Value:   "USD",
 				Sources: namedEnv("QUOTE"),
 			},
-			&cli.IntFlag{
+			&cli.UintFlag{
 				Name:    "history-limit",
 				Value:   10,
 				Sources: namedEnv("HISTORY_LIMIT"),
@@ -110,7 +110,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		coindesk.WithHTTPClient(httpClient),
 	)
 
-	storage := memory.New()
+	storage := memory.New(cfg.HistoryLimit)
 
 	svc := service.New(
 		service.WithProviders(provider),
