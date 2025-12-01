@@ -3,70 +3,83 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/Grishun/curate/internal/config"
-	log "github.com/Grishun/curate/internal/log"
-	"github.com/Grishun/curate/internal/provider/coindesk"
-	"github.com/Grishun/curate/internal/service"
-	"github.com/Grishun/curate/internal/storage/memory"
-	"github.com/Grishun/curate/internal/transport/http"
+	rest "github.com/Grishun/curate/internal/clients/rest"
+	cli "github.com/urfave/cli/v3"
 
-	"github.com/urfave/cli/v3"
+	config "github.com/Grishun/curate/internal/config"
+	log "github.com/Grishun/curate/internal/log"
+	coindesk "github.com/Grishun/curate/internal/provider/coindesk"
+	service "github.com/Grishun/curate/internal/service"
+	memory "github.com/Grishun/curate/internal/storage/memory"
+	http "github.com/Grishun/curate/internal/transport/http"
 )
+
+// namedEnv constructs a cli.ValueSourceChain with environment variables prefixed by "CURATE_"
+// and appends any given envs.
+func namedEnv(envs ...string) cli.ValueSourceChain {
+	resultEnvs := cli.EnvVars()
+
+	for _, env := range envs {
+		resultEnvs.Append(cli.EnvVars("CURATE_" + env))
+	}
+
+	return resultEnvs
+}
 
 func main() {
 	cmd := &cli.Command{
-		Name:  "curate",
-		Usage: "get rates",
+		Name:        "Curate",
+		Description: "Crypto currency rates service",
+		Usage:       "Run the service",
+		Action:      run,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "http-port",
+				Name:    "rest-host", // TODO: need to transfer it to config
+				Value:   "127.0.0.1",
+				Sources: namedEnv("HTTP_HOST"),
+			},
+			&cli.StringFlag{
+				Name:    "rest-port",
 				Value:   "8080",
-				Sources: cli.EnvVars("CURATE_HTTP_PORT"),
+				Sources: namedEnv("HTTP_PORT"),
 			},
-
 			&cli.DurationFlag{
-				Name:    "provider-interval",
+				Name:    "polling-interval",
 				Value:   time.Minute,
-				Sources: cli.EnvVars("CURATE_WORKER_INTERVAL"),
+				Sources: namedEnv("POOLING_INTERVAL"),
 			},
-
 			&cli.StringSliceFlag{
 				Name:    "currencies",
 				Value:   []string{"BTC", "ETH", "TRX"},
-				Sources: cli.EnvVars("CURATE_CURRENCIES"),
+				Sources: namedEnv("CURRENCIES"),
 			},
-
 			&cli.StringFlag{
 				Name:    "quote",
 				Value:   "USD",
-				Sources: cli.EnvVars("CURATE_QUOTE"),
+				Sources: namedEnv("QUOTE"),
 			},
-
 			&cli.IntFlag{
-				Name:    "rate-history-limit",
+				Name:    "history-limit",
 				Value:   10,
-				Sources: cli.EnvVars("RATE_HISTORY_LIMIT"),
+				Sources: namedEnv("HISTORY_LIMIT"),
 			},
-
 			&cli.StringFlag{
 				Name:    "coindesk-url",
 				Value:   "https://min-api.cryptocompare.com",
-				Sources: cli.EnvVars("CURATE_COINDESK_URL"),
+				Sources: namedEnv("COINDESK_URL"),
 			},
-
 			&cli.StringFlag{
 				Name:    "coindesk-token",
 				Value:   "",
-				Sources: cli.EnvVars("CURATE_COINDESK_TOKEN"),
+				Sources: cli.EnvVars("COINDESK_TOKEN"),
 			},
 		},
-
-		Action: run,
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
@@ -82,13 +95,19 @@ func run(ctx context.Context, c *cli.Command) error {
 
 	logger := log.NewSlog(log.WithEncoderJSON(slog.LevelDebug))
 
+	httpClient := rest.NewClient(
+		rest.WithLogger(logger),
+		rest.WithContext(ctx),
+		rest.WithTimeout(time.Minute),
+	)
+
 	provider := coindesk.New(
 		coindesk.WithURI(cfg.CoindeskURL),
 		coindesk.WithToken(cfg.CoindeskToken),
 		coindesk.WithQuote(cfg.Quote),
 		coindesk.WithCurrencies(cfg.Currencies...),
 		coindesk.WithLogger(logger),
-		//TODO : client http
+		coindesk.WithHTTPClient(httpClient),
 	)
 
 	storage := memory.New()
@@ -97,18 +116,27 @@ func run(ctx context.Context, c *cli.Command) error {
 		service.WithProviders(provider),
 		service.WithStorage(storage),
 		service.WithLogger(logger),
-		service.WithPollingInterval(cfg.WorkerInterval),
+		service.WithPollingInterval(cfg.PollingInterval),
 		service.WithQuote(cfg.Quote),
 	)
 
-	go svc.Start(ctx)
+	go func() {
+		if err := svc.Start(ctx); err != nil {
+			logger.Error("service failed to start", "error", err)
+		}
+	}()
 
 	rest := http.NewRouter(svc)
 	errCh := make(chan error, 1)
 
 	go func() {
-		logger.Info("starting http server")
-		if err := rest.Listen("127.0.0.1:" + cfg.HTTPPort); err != nil {
+		addr := net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)
+
+		logger.Info("starting rest server",
+			"addr", addr,
+		)
+
+		if err := rest.Listen(addr); err != nil {
 			errCh <- err
 		}
 
@@ -119,9 +147,11 @@ func run(ctx context.Context, c *cli.Command) error {
 	case <-ctx.Done():
 		sCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+
 		if err := rest.ShutdownWithContext(sCtx); err != nil {
-			logger.Error("failed to shutdown http server", "error", err)
+			logger.Error("failed to shutdown rest server", "error", err)
 		}
+
 		if err := <-errCh; err != nil && ctx.Err() == nil {
 			return err
 		}
@@ -129,6 +159,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		if err != nil {
 			return err
 		}
+
 		return nil
 	}
 

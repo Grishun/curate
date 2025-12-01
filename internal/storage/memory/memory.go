@@ -27,7 +27,7 @@ func (m *Memory) Get(_ context.Context, currency string) ([]domain.Rate, error) 
 }
 
 func (m *Memory) GetAll(_ context.Context) (map[string][]domain.Rate, error) {
-	// create new map
+	// create new map to avoid race condition
 	res := make(map[string][]domain.Rate, len(m.data))
 
 	for currency, rates := range m.data {

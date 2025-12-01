@@ -1,6 +1,9 @@
 package log
 
-import "log/slog"
+import (
+	"fmt"
+	"log/slog"
+)
 
 type SlogProvider struct {
 	*slog.Logger
@@ -18,14 +21,16 @@ func NewSlog(opts ...Option) *SlogProvider {
 	return &SlogProvider{lg}
 }
 
+// ----- wrappers -----
+
 func (l *SlogProvider) Errorf(format string, v ...any) {
-	l.Error(format, v...)
+	l.Error(fmt.Sprintf(format, v...))
 }
 
 func (l *SlogProvider) Warnf(format string, v ...any) {
-	l.Warn(format, v...)
+	l.Warn(fmt.Sprintf(format, v...))
 }
 
 func (l *SlogProvider) Debugf(format string, v ...any) {
-	l.Debug(format, v...)
+	l.Debug(fmt.Sprintf(format, v...))
 }

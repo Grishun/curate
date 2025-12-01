@@ -6,19 +6,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Grishun/curate/internal/clients/http"
-	"github.com/Grishun/curate/internal/domain"
+	"github.com/Grishun/curate/internal/clients/rest"
 )
 
 const multSymbolsPrice = "/data/pricemulti"
 
 type Coindesk struct {
-	uri        string
-	token      string
-	httpClient http.Client
-	quote      string
-	currencies []string
-	logger     domain.Logger
+	options *Options
 }
 
 func New(opts ...Option) *Coindesk {
@@ -28,18 +22,11 @@ func New(opts ...Option) *Coindesk {
 		opt(options)
 	}
 
-	return &Coindesk{
-		uri:        options.uri,
-		token:      options.token,
-		httpClient: options.httpClient,
-		quote:      options.quote,
-		currencies: options.currencies,
-		logger:     options.logger,
-	}
+	return &Coindesk{options: options}
 }
 
 func (c *Coindesk) Name() string {
-	uri, _ := url.Parse(c.uri)
+	uri, _ := url.Parse(c.options.uri)
 
 	return uri.Hostname()
 }
@@ -48,24 +35,24 @@ func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 	result := make(map[string]map[string]float64)
 
 	params := url.Values{}
-	params.Add("fsyms", strings.Join(c.currencies, ","))
-	params.Add("tsyms", c.quote)
-	params.Add("api_key", c.token)
+	params.Add("fsyms", strings.Join(c.options.currencies, ","))
+	params.Add("tsyms", c.options.quote)
+	params.Add("api_key", c.options.token)
 
 	headers := make(http2.Header)
 	headers.Add("Content-type", "application/json")
 	headers.Add("charset", "UTF-8")
 
-	_, err := c.httpClient.NewRequest(
-		http.WithMethod(http2.MethodGet),
-		http.WithQueryParams(params),
-		http.WithHeaders(headers),
-		http.WithURI(c.uri+multSymbolsPrice),
-		http.WithRequestContext(ctx),
-		http.WithUnmarshallTo(&result),
+	_, err := c.options.httpClient.Do(
+		rest.WithMethod(http2.MethodGet),
+		rest.WithQueryParams(params),
+		rest.WithHeaders(headers),
+		rest.WithURI(c.options.uri+multSymbolsPrice),
+		rest.WithRequestContext(ctx),
+		rest.WithUnmarshallTo(&result),
 	)
 
-	return convert(result, c.quote), err
+	return convert(result, c.options.quote), err
 }
 
 func convert(rates map[string]map[string]float64, quote string) map[string]float64 {

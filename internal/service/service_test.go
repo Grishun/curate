@@ -32,7 +32,7 @@ func TestService(t *testing.T) {
 	}()
 
 	require.Eventually(t, func() bool {
-		storageMap, err := service.storage.GetAll(ctx) // TODO: make more checks
+		storageMap, err := service.options.storage.GetAll(ctx) // TODO: make more checks
 
 		return err == nil && len(storageMap) == 3
 	}, time.Second*3, time.Second)

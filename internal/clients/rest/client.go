@@ -1,4 +1,4 @@
-package http
+package rest
 
 import (
 	"net/http"
@@ -30,7 +30,7 @@ func NewClient(opts ...ClientOption) Client {
 	return Client{restyClient}
 }
 
-func (c *Client) NewRequest(opts ...domain.RequestOption) (*http.Response, error) {
+func (c *Client) Do(opts ...domain.RequestOption) (*http.Response, error) {
 	options := NewOptions()
 
 	for _, opt := range opts {
@@ -44,5 +44,9 @@ func (c *Client) NewRequest(opts ...domain.RequestOption) (*http.Response, error
 		SetResult(options.UnmarshallTo).
 		Execute(options.Method, options.URI)
 
-	return resp.RawResponse, err
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.RawResponse, nil
 }

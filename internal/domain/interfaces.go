@@ -31,5 +31,5 @@ type Provider interface {
 }
 
 type Client interface {
-	NewRequest(opts ...RequestOption) (*http.Response, error)
+	Do(opts ...RequestOption) (*http.Response, error)
 }
