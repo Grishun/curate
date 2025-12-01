@@ -30,7 +30,7 @@ type Logger interface {
 
 type Provider interface {
 	Name() string
-	Fetch(ctx context.Context) (map[string]float64, error) // TODO: think about health check for storage
+	Fetch(ctx context.Context) (map[string]float64, error)
 }
 
 type Client interface {

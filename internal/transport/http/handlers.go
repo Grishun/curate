@@ -17,10 +17,7 @@ func NewHandlers(srv *service.Service) *Handlers {
 }
 
 func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
-	if params.Limit == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "limit is required")
-	}
-	ratesMap, err := s.service.GetRates(c.Context(), uint(*params.Limit))
+	ratesMap, err := s.service.GetRates(c.Context())
 	if err != nil {
 		return err
 	}
@@ -29,11 +26,7 @@ func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
 }
 
 func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRateByCurrencyParams) error {
-	if params.Limit == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "limit is required")
-	}
-
-	ratesMap, err := s.service.GetRate(c.Context(), currency, uint(*params.Limit))
+	ratesMap, err := s.service.GetRate(c.Context(), currency)
 	if err != nil {
 		return err
 	}

@@ -2,15 +2,13 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/Grishun/curate/internal/domain"
-	"github.com/Grishun/curate/internal/ds/ratebuffer"
 )
 
 type Memory struct {
-	data         map[string]ratebuffer.Buffer
+	data         map[string][]domain.Rate
 	mu           sync.RWMutex
 	historyLimit uint
 }
@@ -18,7 +16,7 @@ type Memory struct {
 func New(historyLimit uint) *Memory {
 	return &Memory{
 		mu:           sync.RWMutex{},
-		data:         make(map[string]ratebuffer.Buffer),
+		data:         make(map[string][]domain.Rate),
 		historyLimit: historyLimit,
 	}
 }
@@ -31,17 +29,32 @@ func (m *Memory) GetHistoryLimit() uint {
 }
 
 func (m *Memory) Get(_ context.Context, currency string, limit uint) ([]domain.Rate, error) {
+	if limit > m.historyLimit {
+		limit = m.historyLimit
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	if _, ok := m.data[currency]; !ok {
-		return nil, errors.New("currency not found")
+	rates := m.data[currency]
+	var ratesCopy []domain.Rate // return a copy of rate slice to avoid data races
+
+	if len(rates) > int(limit) {
+		ratesCopy = make([]domain.Rate, limit)
+		copy(ratesCopy, rates[len(rates)-int(limit):])
+	} else {
+		ratesCopy = make([]domain.Rate, len(rates))
+		copy(ratesCopy, rates)
 	}
 
-	return m.data[currency].LastNRates(limit), nil
+	return ratesCopy, nil
 }
 
 func (m *Memory) GetAll(_ context.Context, limit uint) (map[string][]domain.Rate, error) {
+	if limit > m.historyLimit {
+		limit = m.historyLimit
+	}
+
 	// create a new map to avoid race condition
 	res := make(map[string][]domain.Rate, len(m.data))
 
@@ -49,7 +62,17 @@ func (m *Memory) GetAll(_ context.Context, limit uint) (map[string][]domain.Rate
 	defer m.mu.RUnlock()
 
 	for currency, rates := range m.data {
-		res[currency] = rates.LastNRates(limit)
+		var ratesCopy []domain.Rate
+
+		if len(rates) > int(limit) {
+			ratesCopy = make([]domain.Rate, limit)
+			copy(ratesCopy, rates[len(rates)-int(limit):])
+		} else {
+			ratesCopy = make([]domain.Rate, len(rates))
+			copy(ratesCopy, rates)
+		}
+
+		res[currency] = ratesCopy
 	}
 
 	return res, nil
@@ -60,14 +83,14 @@ func (m *Memory) Insert(_ context.Context, rates ...domain.Rate) error {
 	defer m.mu.Unlock()
 
 	for _, newRate := range rates {
-		rateBuffer, ok := m.data[newRate.Currency]
+		rate, ok := m.data[newRate.Currency]
 		if !ok {
-			rateBuffer = ratebuffer.New(m.historyLimit)
-			m.data[newRate.Currency] = rateBuffer
+			rate = make([]domain.Rate, 0, m.historyLimit)
+			m.data[newRate.Currency] = rate
 		}
 
-		rateBuffer.Push(newRate)
-		m.data[newRate.Currency] = rateBuffer
+		rate = append(rate, newRate)
+		m.data[newRate.Currency] = rate
 	}
 
 	return nil
