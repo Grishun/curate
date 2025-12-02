@@ -77,23 +77,23 @@ func main() {
 			&cli.StringFlag{
 				Name:    "coindesk-token",
 				Value:   "",
-				Sources: cli.EnvVars("COINDESK_TOKEN"),
+				Sources: namedEnv("COINDESK_TOKEN"),
 			},
 
 			&cli.StringFlag{
 				Name:    "influxdb-uri",
 				Value:   "http://127.0.0.1:8181",
-				Sources: cli.EnvVars("INFLUXDB_URL"),
+				Sources: namedEnv("INFLUXDB_URL"),
 			},
 			&cli.StringFlag{
 				Name:    "influxdb-token",
 				Value:   "dev-token",
-				Sources: cli.EnvVars("INFLUXDB_TOKEN"),
+				Sources: namedEnv("INFLUXDB_TOKEN"),
 			},
 			&cli.StringFlag{
 				Name:    "influxdb-bucket",
 				Value:   "curate",
-				Sources: cli.EnvVars("INFLUXDB_BUCKET"),
+				Sources: namedEnv("INFLUXDB_BUCKET"),
 			},
 		},
 	}
