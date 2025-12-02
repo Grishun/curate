@@ -33,6 +33,6 @@ type Provider interface {
 	Fetch(ctx context.Context) (map[string]float64, error)
 }
 
-type Client interface {
+type HTTPClient interface {
 	Do(opts ...RequestOption) (*http.Response, error)
 }

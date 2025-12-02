@@ -14,7 +14,7 @@ type HistoryPoint struct {
 }
 
 type Rate struct {
-	Currency  string    `lp:"measuremnt" json:"currency"`
+	Currency  string    `lp:"measurement" json:"currency"`
 	Quote     string    `lp:"tag,quote" json:"quote"`
 	Provider  string    `lp:"tag,provider" json:"provider"`
 	Value     float64   `lp:"field,value" json:"value"`
