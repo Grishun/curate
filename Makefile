@@ -5,3 +5,6 @@ generate:
 
 test:
 	@go test ./...
+
+build-docker:
+	@docker build . -t curate-dev
