@@ -70,6 +70,6 @@ func NewOptions(opts ...Option) *Options {
 		currencies:   []string{"BTC", "ETH", "TRX"},
 		database:     "curate",
 		hostURI:      "127.0.0.1:8181",
-		token:        "",
+		token:        "dev-token",
 	}
 }

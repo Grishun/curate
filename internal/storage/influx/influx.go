@@ -44,12 +44,11 @@ func NewClient(opts ...Option) (*Client, error) {
 	})
 
 	if err != nil {
-		options.logger.Error("failed to create influx client",
-			"error", err, "host", options.hostURI, "database", options.database, "token", options.token[:5]+"...")
+		return nil, err
 	}
 
 	options.logger.Debug("created influx client",
-		"host", options.hostURI, "database", options.database, "token", options.token[:5]+"...")
+		"host", options.hostURI, "database", options.database)
 
 	return &Client{
 		client:     influxClient,
@@ -99,7 +98,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) Get(ctx context.Context, currecny string, limit uint) ([]domain.Rate, error) {
+func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]domain.Rate, error) {
 	if !slices.Contains(c.options.currencies, currecny) {
 		return nil, ErrUnavailableCurrency
 	}
@@ -126,7 +125,7 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint) ([]domain
 	return rates, nil
 }
 
-func (c *Client) GetAll(ctx context.Context, limit uint) (map[string][]domain.Rate, error) {
+func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
 	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`,
 		strings.Join(c.options.currencies, ","), limit)
 

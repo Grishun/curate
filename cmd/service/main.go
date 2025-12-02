@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Grishun/curate/internal/clients/rest"
-	"github.com/Grishun/curate/internal/storage/memory"
+	"github.com/Grishun/curate/internal/storage/influx"
 	"github.com/urfave/cli/v3"
 
 	"github.com/Grishun/curate/internal/config"
@@ -82,17 +82,17 @@ func main() {
 
 			&cli.StringFlag{
 				Name:    "influxdb-uri",
-				Value:   "127.0.0.1:8181",
+				Value:   "http://127.0.0.1:8181",
 				Sources: cli.EnvVars("INFLUXDB_URL"),
 			},
 			&cli.StringFlag{
 				Name:    "influxdb-token",
-				Value:   "",
+				Value:   "dev-token",
 				Sources: cli.EnvVars("INFLUXDB_TOKEN"),
 			},
 			&cli.StringFlag{
 				Name:    "influxdb-bucket",
-				Value:   "",
+				Value:   "curate",
 				Sources: cli.EnvVars("INFLUXDB_BUCKET"),
 			},
 		},
@@ -125,19 +125,16 @@ func run(ctx context.Context, c *cli.Command) error {
 		coindesk.WithHTTPClient(httpClient),
 	)
 
-	//storage, err := influx.NewClient(
-	//	cfg.InfluxDBURI,
-	//	cfg.InfluxDBToken,
-	//	cfg.InfluxDBBucket,
-	//	influx.WithContext(ctx),
-	//	influx.WithLogger(logger),
-	//	influx.WithCurrencies(cfg.Currencies...),
-	//	influx.With
-	//	)
-
-	storage := memory.New(
-		memory.WithHistoryLimit(cfg.HistoryLimit),
+	storage, err := influx.NewClient(
+		influx.WithHostURI(cfg.InfluxDBURI),
+		influx.WithToken(cfg.InfluxDBToken),
+		influx.WithDatabase(cfg.InfluxDBBucket),
+		influx.WithLogger(logger),
+		influx.WithCurrencies(cfg.Currencies...),
 	)
+	if err != nil {
+		return err
+	}
 
 	svc := service.New(
 		service.WithProviders(provider),
@@ -154,7 +151,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		}
 	}()
 
-	httpRouter := http.NewRouter(svc, cfg.HistoryLimit)
+	httpRouter := http.NewRouter(svc, cfg.HistoryLimit, cfg.Currencies)
 	errCh := make(chan error, 1)
 
 	go func() {

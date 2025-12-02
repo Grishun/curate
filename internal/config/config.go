@@ -31,7 +31,7 @@ func New(c *cli.Command) *Config {
 		CoindeskURL:     c.String("coindesk-url"),
 		CoindeskToken:   c.String("coindesk-token"),
 		HistoryLimit:    c.Uint32("history-limit"),
-		InfluxDBURI:     c.String("influxdb-url"),
+		InfluxDBURI:     c.String("influxdb-uri"),
 		InfluxDBToken:   c.String("influxdb-token"),
 		InfluxDBBucket:  c.String("influxdb-bucket"),
 	}

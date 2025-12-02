@@ -22,7 +22,7 @@ var (
 	hostPort      string
 	influxClient  *Client
 	testRatesMap  map[string][]domain.Rate
-	ratesQuantity = uint(10)
+	ratesQuantity = uint32(10)
 	err           error
 )
 
@@ -74,14 +74,14 @@ func TestInfluxInsertAndGetCurrency(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for _, v := range []uint{10, 5, 15} {
+	for _, v := range []uint32{10, 5, 15} {
 		t.Run(fmt.Sprintf("limit=%d", v), func(t *testing.T) {
 			testInfluxInsertAndGetCurrency(t, ctx, v)
 		})
 	}
 }
 
-func testInfluxInsertAndGetCurrency(t *testing.T, ctx context.Context, limit uint) {
+func testInfluxInsertAndGetCurrency(t *testing.T, ctx context.Context, limit uint32) {
 	for currency, sourceRates := range testRatesMap {
 		ratesFromInflux, err := influxClient.Get(ctx, currency, limit)
 		require.NoError(t, err)
@@ -94,14 +94,14 @@ func TestInfluxInsertAndGetAll(t *testing.T) {
 	defer cancel()
 
 	// validate GetAll
-	for _, v := range []uint{10, 5, 15} {
+	for _, v := range []uint32{10, 5, 15} {
 		t.Run(fmt.Sprintf("limit=%d", v), func(t *testing.T) {
 			testInfluxInsertAndGetAll(t, ctx, v)
 		})
 	}
 }
 
-func testInfluxInsertAndGetAll(t *testing.T, ctx context.Context, limit uint) {
+func testInfluxInsertAndGetAll(t *testing.T, ctx context.Context, limit uint32) {
 	influxRatesMap, err := influxClient.GetAll(ctx, limit)
 	require.NoError(t, err)
 	require.Len(t, influxRatesMap, len(testRatesMap))
@@ -145,7 +145,7 @@ func runGenericInfluxV3(ctx context.Context, dbName string) (testcontainers.Cont
 	return container, hostPort.Port(), err
 }
 
-func generateTestRates(currency string, qty uint) []domain.Rate {
+func generateTestRates(currency string, qty uint32) []domain.Rate {
 	res := make([]domain.Rate, qty)
 
 	for i := 0; i < int(qty); i++ {
