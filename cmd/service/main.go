@@ -9,15 +9,15 @@ import (
 	"syscall"
 	"time"
 
-	rest "github.com/Grishun/curate/internal/clients/rest"
-	cli "github.com/urfave/cli/v3"
+	"github.com/Grishun/curate/internal/clients/rest"
+	"github.com/Grishun/curate/internal/storage/memory"
+	"github.com/urfave/cli/v3"
 
-	config "github.com/Grishun/curate/internal/config"
-	log "github.com/Grishun/curate/internal/log"
-	coindesk "github.com/Grishun/curate/internal/provider/coindesk"
-	service "github.com/Grishun/curate/internal/service"
-	memory "github.com/Grishun/curate/internal/storage/memory"
-	http "github.com/Grishun/curate/internal/transport/http"
+	"github.com/Grishun/curate/internal/config"
+	"github.com/Grishun/curate/internal/log"
+	"github.com/Grishun/curate/internal/provider/coindesk"
+	"github.com/Grishun/curate/internal/service"
+	"github.com/Grishun/curate/internal/transport/http"
 )
 
 // namedEnv constructs a cli.ValueSourceChain with environment variables prefixed by "CURATE_"
@@ -126,6 +126,16 @@ func run(ctx context.Context, c *cli.Command) error {
 		coindesk.WithHTTPClient(httpClient),
 	)
 
+	//storage, err := influx.NewClient(
+	//	cfg.InfluxDBURI,
+	//	cfg.InfluxDBToken,
+	//	cfg.InfluxDBBucket,
+	//	influx.WithContext(ctx),
+	//	influx.WithLogger(logger),
+	//	influx.WithCurrencies(cfg.Currencies...),
+	//	influx.With
+	//	)
+
 	storage := memory.New(cfg.HistoryLimit)
 
 	svc := service.New(
@@ -142,7 +152,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		}
 	}()
 
-	rest := http.NewRouter(svc)
+	httpRouter := http.NewRouter(svc)
 	errCh := make(chan error, 1)
 
 	go func() {
@@ -152,7 +162,7 @@ func run(ctx context.Context, c *cli.Command) error {
 			"addr", addr,
 		)
 
-		if err := rest.Listen(addr); err != nil {
+		if err := httpRouter.Listen(addr); err != nil {
 			errCh <- err
 		}
 
@@ -164,7 +174,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		sCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if err := rest.ShutdownWithContext(sCtx); err != nil {
+		if err := httpRouter.ShutdownWithContext(sCtx); err != nil {
 			logger.Error("failed to shutdown rest server", "error", err)
 		}
 

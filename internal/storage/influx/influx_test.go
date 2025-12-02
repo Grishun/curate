@@ -88,6 +88,7 @@ func testInfluxInsertAndGetCurrency(t *testing.T, ctx context.Context, limit uin
 		validateLastNRates(t, ratesFromInflux, sourceRates, int(limit))
 	}
 }
+
 func TestInfluxInsertAndGetAll(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()

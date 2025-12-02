@@ -9,11 +9,19 @@ import (
 )
 
 func NewRouter(service *service.Service) *fiber.App {
-	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app := fiber.New(fiber.Config{
+		DisableStartupMessage: false,
+		AppName:               "currate-rest",
+	})
 
-	app.Use(recover.New(), requestid.New(), logger.New()) // TODO: add our logger
+	app.Use(
+		recover.New(),
+		requestid.New(),
+		logger.New(),
+	) // TODO: add our logger
 
 	api := app.Group("/")
+
 	handlers := NewHandlers(service)
 
 	RegisterHandlersWithOptions(api, handlers, FiberServerOptions{})
