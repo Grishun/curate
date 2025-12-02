@@ -22,7 +22,10 @@ func NewRouter(service *service.Service, historyLimit uint32) *fiber.App { // TO
 
 	api := app.Group("/")
 
-	handlers := NewHandlers(service, historyLimit)
+	handlers := NewHandlers(
+		WithService(service),
+		WithHistoryLimit(historyLimit),
+	)
 
 	RegisterHandlersWithOptions(api, handlers, FiberServerOptions{})
 

@@ -33,5 +33,5 @@ type Provider interface {
 }
 
 type HTTPClient interface {
-	Do(opts ...RequestOption) (*http.Response, error)
+	Do(ctx context.Context, opts ...RequestOption) (*http.Response, error)
 }

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -20,7 +21,6 @@ func NewClient(opts ...ClientOption) *Client {
 	restyClient := resty.New()
 
 	restyClient.
-		SetContext(options.ctx).
 		SetBaseURL(options.baseURI).
 		SetAuthToken(options.token).
 		SetLogger(options.logger).
@@ -30,14 +30,14 @@ func NewClient(opts ...ClientOption) *Client {
 	return &Client{restyClient}
 }
 
-func (c *Client) Do(opts ...domain.RequestOption) (*http.Response, error) {
+func (c *Client) Do(ctx context.Context, opts ...domain.RequestOption) (*http.Response, error) {
 	options := NewOptions()
 
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	resp, err := c.R().SetContext(options.Ctx).
+	resp, err := c.R().SetContext(ctx).
 		SetHeaderMultiValues(options.Headers).
 		SetQueryParamsFromValues(options.QueryParams).
 		SetBody(options.Body).

@@ -43,12 +43,11 @@ func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 	headers.Add("Content-type", "application/json")
 	headers.Add("charset", "UTF-8")
 
-	_, err := c.options.httpClient.Do(
+	_, err := c.options.httpClient.Do(ctx,
 		rest.WithMethod(http2.MethodGet),
 		rest.WithQueryParams(params),
 		rest.WithHeaders(headers),
 		rest.WithURI(c.options.uri+multSymbolsPrice),
-		rest.WithRequestContext(ctx),
 		rest.WithUnmarshallTo(&result),
 	)
 

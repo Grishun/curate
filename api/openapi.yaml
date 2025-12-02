@@ -84,6 +84,19 @@ paths:
         default:
           description: Service is down
 
+  /api/v1/currencies:
+    get:
+      description: Returns all available currencies
+      operationId: GetAllCurrencies
+      responses:
+        '200':
+          description: Successfully received all currencies
+          content:
+            application/json:
+              schema:
+                type: array
+                format: string
+
 components:
   schemas:
     HistoryPoint:

@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"context"
 	"time"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -12,7 +11,6 @@ type ClientOption func(opt *ClientOptions)
 
 type ClientOptions struct {
 	logger     domain.Logger
-	ctx        context.Context
 	baseURI    string
 	token      string
 	authScheme string
@@ -22,7 +20,6 @@ type ClientOptions struct {
 func NewClientOptions() *ClientOptions {
 	return &ClientOptions{
 		logger:     log.NewSlog(),
-		ctx:        context.Background(),
 		baseURI:    "",
 		token:      "",
 		authScheme: "Bearer",
@@ -33,12 +30,6 @@ func NewClientOptions() *ClientOptions {
 func WithLogger(l domain.Logger) ClientOption {
 	return func(opt *ClientOptions) {
 		opt.logger = l
-	}
-}
-
-func WithContext(ctx context.Context) ClientOption {
-	return func(opt *ClientOptions) {
-		opt.ctx = ctx
 	}
 }
 

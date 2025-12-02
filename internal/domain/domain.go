@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,11 +20,9 @@ type Rate struct {
 	Timestamp time.Time `lp:"timestamp" json:"timestamp"`
 	//Metadata  map[string]any `json:"metadata"`
 }
-
 type RequestOption func(opt *RequestOptions)
 
 type RequestOptions struct {
-	Ctx          context.Context
 	Headers      http.Header
 	QueryParams  url.Values
 	Body         io.Reader

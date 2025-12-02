@@ -39,9 +39,9 @@ func TestMain(m *testing.M) {
 
 	// prepare client
 	influxClient, err = NewClient(
-		"http://"+net.JoinHostPort("127.0.0.1", hostPort),
-		"Bearer",
-		dbName,
+		WithDatabase(dbName),
+		WithHostURI(fmt.Sprintf("http://%s", net.JoinHostPort("127.0.0.1", hostPort))),
+		WithToken("Bearer"),
 	)
 	if err != nil {
 		panic(err)

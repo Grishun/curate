@@ -1,63 +1,70 @@
 package http
 
 import (
-	"github.com/Grishun/curate/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Handlers struct {
-	service     *service.Service
-	histryLimit uint32
+	options *HandlerOptions
 }
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Handlers)(nil)
 
-func NewHandlers(srv *service.Service, historyLimit uint32) *Handlers { //TODO: add options
+func NewHandlers(opts ...HandlerOption) *Handlers {
+	options := NewHandlerOptions()
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	return &Handlers{
-		service:     srv,
-		histryLimit: historyLimit,
+		options: options,
 	}
 }
 
 func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
-	limit := s.histryLimit
+	limit := s.options.historyLimit
 	if params.Limit != nil {
 		limit = *params.Limit
 	}
-	if limit > s.histryLimit {
-		limit = s.histryLimit
+	if limit > s.options.historyLimit {
+		limit = s.options.historyLimit
 	}
 
-	ratesMap, err := s.service.GetRates(c.Context(), limit)
+	ratesMap, err := s.options.service.GetRates(c.Context(), limit)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(ratesMap)
+	return c.JSON(mapDomainRatesToOpenAPIRates(ratesMap))
 }
 
 func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRateByCurrencyParams) error {
-	limit := s.histryLimit
+	limit := s.options.historyLimit
 	if params.Limit != nil {
 		limit = *params.Limit
 	}
-	if limit > s.histryLimit {
-		limit = s.histryLimit
+	if limit > s.options.historyLimit {
+		limit = s.options.historyLimit
 	}
 
-	ratesMap, err := s.service.GetRate(c.Context(), currency, limit)
+	rates, err := s.options.service.GetRate(c.Context(), currency, limit)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(ratesMap)
+	return c.JSON(mapDomainRateToOpenAPIRate(rates))
 }
 
 func (s *Handlers) HealthCheck(c *fiber.Ctx) error {
-	if err := s.service.HealthCheck(c.Context()); err != nil {
+	if err := s.options.service.HealthCheck(c.Context()); err != nil {
 		return err
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (s *Handlers) GetAllCurrencies(c *fiber.Ctx) error {
+	return c.JSON(s.options.currecies)
 }

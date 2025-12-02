@@ -18,9 +18,6 @@ type Client struct {
 	client     *influx.Client
 	options    *Options
 	httpClient domain.HTTPClient
-	database   string
-	hostURI    string
-	token      string
 }
 
 var (
@@ -28,7 +25,7 @@ var (
 	ErrFailedToParseData   = errors.New("error parsing data from influx map")
 )
 
-func NewClient(hostURI, token, database string, opts ...Option) (*Client, error) {
+func NewClient(opts ...Option) (*Client, error) {
 	options := NewOptions(opts...)
 
 	for _, opt := range opts {
@@ -36,32 +33,28 @@ func NewClient(hostURI, token, database string, opts ...Option) (*Client, error)
 	}
 
 	httpClient := rest.NewClient(
-		rest.WithToken(token),
-		rest.WithContext(options.ctx),
+		rest.WithToken(options.token),
 		rest.WithAuthScheme("Bearer"),
 	)
 
 	influxClient, err := influx.New(influx.ClientConfig{
-		Host:     hostURI,
-		Token:    token,
-		Database: database,
+		Host:     options.hostURI,
+		Token:    options.token,
+		Database: options.database,
 	})
 
 	if err != nil {
 		options.logger.Error("failed to create influx client",
-			"error", err, "host", hostURI, "database", database, "token", token[:5]+"...")
+			"error", err, "host", options.hostURI, "database", options.database, "token", options.token[:5]+"...")
 	}
 
 	options.logger.Debug("created influx client",
-		"host", hostURI, "database", database, "token", token[:5]+"...")
+		"host", options.hostURI, "database", options.database, "token", options.token[:5]+"...")
 
 	return &Client{
 		client:     influxClient,
 		httpClient: httpClient,
 		options:    options,
-		database:   database,
-		hostURI:    hostURI,
-		token:      token,
 	}, nil
 }
 
@@ -77,10 +70,9 @@ func (c *Client) Insert(ctx context.Context, rates ...domain.Rate) error {
 }
 
 func (c *Client) HealthCheck(ctx context.Context) error {
-	resp, err := c.httpClient.Do(
-		rest.WithURI(c.hostURI+"/health"),
+	resp, err := c.httpClient.Do(ctx,
+		rest.WithURI(c.options.hostURI+"/health"),
 		rest.WithMethod(http2.MethodGet),
-		rest.WithRequestContext(ctx),
 	)
 
 	if err != nil {
@@ -90,10 +82,9 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
 	}
 
-	resp, err = c.httpClient.Do(
-		rest.WithURI(c.hostURI+"/ping"),
+	resp, err = c.httpClient.Do(ctx,
+		rest.WithURI(c.options.hostURI+"/ping"),
 		rest.WithMethod(http2.MethodGet),
-		rest.WithRequestContext(ctx),
 	)
 
 	if err != nil {

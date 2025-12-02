@@ -1,7 +1,6 @@
 package influx
 
 import (
-	"context"
 	"time"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -9,11 +8,13 @@ import (
 )
 
 type Options struct {
-	ctx          context.Context
 	writeTimeout time.Duration
 	queryTimeout time.Duration
 	logger       domain.Logger
 	currencies   []string
+	database     string
+	hostURI      string
+	token        string
 }
 
 type Option func(*Options)
@@ -36,15 +37,27 @@ func WithQueryTimeout(timeout time.Duration) Option {
 	}
 }
 
-func WithContext(ctx context.Context) Option {
-	return func(opt *Options) {
-		opt.ctx = ctx
-	}
-}
-
 func WithCurrencies(currencies ...string) Option {
 	return func(opt *Options) {
 		opt.currencies = currencies
+	}
+}
+
+func WithDatabase(database string) Option {
+	return func(opt *Options) {
+		opt.database = database
+	}
+}
+
+func WithHostURI(uri string) Option {
+	return func(opt *Options) {
+		opt.hostURI = uri
+	}
+}
+
+func WithToken(token string) Option {
+	return func(opt *Options) {
+		opt.token = token
 	}
 }
 
@@ -54,7 +67,9 @@ func NewOptions(opts ...Option) *Options {
 		logger:       log.NewSlog(),
 		writeTimeout: 10 * time.Second,
 		queryTimeout: time.Minute,
-		ctx:          context.Background(),
 		currencies:   []string{"BTC", "ETH", "TRX"},
+		database:     "curate",
+		hostURI:      "127.0.0.1:8181",
+		token:        "",
 	}
 }

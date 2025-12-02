@@ -28,7 +28,7 @@ func New(opts ...Option) *Memory {
 }
 
 func (m *Memory) Get(_ context.Context, currency string, limit uint32) ([]domain.Rate, error) {
-	if limit > m.opts.historyLimit {
+	if limit > m.opts.historyLimit || limit < 1 {
 		limit = m.opts.historyLimit
 	}
 
@@ -50,7 +50,7 @@ func (m *Memory) Get(_ context.Context, currency string, limit uint32) ([]domain
 }
 
 func (m *Memory) GetAll(_ context.Context, limit uint32) (map[string][]domain.Rate, error) {
-	if limit > m.opts.historyLimit {
+	if limit > m.opts.historyLimit || limit < 1 {
 		limit = m.opts.historyLimit
 	}
 

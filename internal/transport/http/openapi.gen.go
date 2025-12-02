@@ -47,6 +47,9 @@ type GetRateByCurrencyParams struct {
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /api/v1/currencies)
+	GetAllCurrencies(c *fiber.Ctx) error
+
 	// (GET /api/v1/health)
 	HealthCheck(c *fiber.Ctx) error
 
@@ -63,6 +66,12 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc fiber.Handler
+
+// GetAllCurrencies operation middleware
+func (siw *ServerInterfaceWrapper) GetAllCurrencies(c *fiber.Ctx) error {
+
+	return siw.Handler.GetAllCurrencies(c)
+}
 
 // HealthCheck operation middleware
 func (siw *ServerInterfaceWrapper) HealthCheck(c *fiber.Ctx) error {
@@ -146,6 +155,8 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 	for _, m := range options.Middlewares {
 		router.Use(fiber.Handler(m))
 	}
+
+	router.Get(options.BaseURL+"/api/v1/currencies", wrapper.GetAllCurrencies)
 
 	router.Get(options.BaseURL+"/api/v1/health", wrapper.HealthCheck)
 

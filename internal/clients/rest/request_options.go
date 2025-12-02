@@ -2,7 +2,6 @@ package rest
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -47,12 +46,6 @@ func WithURI(uri string) domain.RequestOption {
 func WithMethod(method string) domain.RequestOption {
 	return func(opt *domain.RequestOptions) {
 		opt.Method = method
-	}
-}
-
-func WithRequestContext(ctx context.Context) domain.RequestOption {
-	return func(opt *domain.RequestOptions) {
-		opt.Ctx = ctx
 	}
 }
 

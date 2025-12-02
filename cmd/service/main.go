@@ -113,7 +113,6 @@ func run(ctx context.Context, c *cli.Command) error {
 
 	httpClient := rest.NewClient(
 		rest.WithLogger(logger),
-		rest.WithContext(ctx),
 		rest.WithTimeout(time.Minute),
 	)
 
