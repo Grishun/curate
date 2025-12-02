@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
 
-func NewRouter(service *service.Service) *fiber.App {
+func NewRouter(service *service.Service, historyLimit uint32) *fiber.App { // TODO: build with options
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: false,
 		AppName:               "currate-rest",
@@ -22,7 +22,7 @@ func NewRouter(service *service.Service) *fiber.App {
 
 	api := app.Group("/")
 
-	handlers := NewHandlers(service)
+	handlers := NewHandlers(service, historyLimit)
 
 	RegisterHandlersWithOptions(api, handlers, FiberServerOptions{})
 

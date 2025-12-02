@@ -36,12 +36,12 @@ type Rate struct {
 
 // GetAllRatesParams defines parameters for GetAllRates.
 type GetAllRatesParams struct {
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint32 `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // GetRateByCurrencyParams defines parameters for GetRateByCurrency.
 type GetRateByCurrencyParams struct {
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint32 `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ServerInterface represents all server handlers.

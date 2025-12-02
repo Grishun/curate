@@ -11,7 +11,7 @@ import (
 )
 
 func TestMemoryStorageGet(t *testing.T) {
-	storage := New(10)
+	storage := New()
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
 	ratesQty := 15
@@ -20,12 +20,12 @@ func TestMemoryStorageGet(t *testing.T) {
 		storage.Insert(context.Background(), generateTestRates(currency, ratesQty)...)
 	}
 
-	limit := 5
+	limit := uint32(5)
 	for _, currency := range currencies {
-		rates, err := storage.Get(context.Background(), currency, uint(limit))
+		rates, err := storage.Get(context.Background(), currency, limit)
 		require.NoError(t, err)
 
-		require.Len(t, rates, limit)
+		require.Len(t, rates, int(limit))
 		for _, rate := range rates {
 			require.NotZero(t, rate.Value)
 			require.NotZero(t, rate.Timestamp)
@@ -36,7 +36,7 @@ func TestMemoryStorageGet(t *testing.T) {
 }
 
 func TestMemoryStorageGetAll(t *testing.T) {
-	storage := New(10)
+	storage := New()
 
 	currencies := []string{"BTC", "ETH", "LUNA"}
 	ratesQty := 15
@@ -46,14 +46,14 @@ func TestMemoryStorageGetAll(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	limit := 5
-	ratesMap, err := storage.GetAll(context.Background(), uint(limit))
+	limit := uint32(5)
+	ratesMap, err := storage.GetAll(context.Background(), limit)
 	require.NoError(t, err)
 	require.Len(t, ratesMap, len(currencies))
 
 	for currency, rates := range ratesMap {
 		require.Contains(t, currencies, currency)
-		require.Len(t, rates, limit)
+		require.Len(t, rates, int(limit))
 
 		for _, rate := range rates {
 			require.NotZero(t, rate.Value)

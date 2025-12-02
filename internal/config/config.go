@@ -14,7 +14,7 @@ type Config struct {
 	Quote           string        `yaml:"quote"`
 	CoindeskURL     string        `yaml:"coindesk_url"`
 	CoindeskToken   string        `yaml:"coindesk_token"`
-	HistoryLimit    uint          `yaml:"history_limit"`
+	HistoryLimit    uint32        `yaml:"history_limit"`
 	InfluxDBURI     string        `yaml:"influxdb_uri"`
 	InfluxDBToken   string        `yaml:"influxdb_token"`
 	InfluxDBBucket  string        `yaml:"influxdb_bucket"`
@@ -30,7 +30,7 @@ func New(c *cli.Command) *Config {
 		Quote:           c.String("quote"),
 		CoindeskURL:     c.String("coindesk-url"),
 		CoindeskToken:   c.String("coindesk-token"),
-		HistoryLimit:    c.Uint("history-limit"),
+		HistoryLimit:    c.Uint32("history-limit"),
 		InfluxDBURI:     c.String("influxdb-url"),
 		InfluxDBToken:   c.String("influxdb-token"),
 		InfluxDBBucket:  c.String("influxdb-bucket"),

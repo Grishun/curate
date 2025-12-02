@@ -58,11 +58,11 @@ func (s *Service) Stop(_ context.Context) error {
 	return s.scheduler.Shutdown()
 }
 
-func (s *Service) GetRate(ctx context.Context, currency string, limit uint) ([]domain.Rate, error) {
+func (s *Service) GetRate(ctx context.Context, currency string, limit uint32) ([]domain.Rate, error) {
 	return s.options.storage.Get(ctx, currency, limit)
 }
 
-func (s *Service) GetRates(ctx context.Context, limit uint) (map[string][]domain.Rate, error) {
+func (s *Service) GetRates(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
 	return s.options.storage.GetAll(ctx, limit)
 }
 

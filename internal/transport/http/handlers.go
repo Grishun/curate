@@ -6,24 +6,30 @@ import (
 )
 
 type Handlers struct {
-	service *service.Service
+	service     *service.Service
+	histryLimit uint32
 }
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Handlers)(nil)
 
-func NewHandlers(srv *service.Service) *Handlers {
-	return &Handlers{service: srv}
+func NewHandlers(srv *service.Service, historyLimit uint32) *Handlers { //TODO: add options
+	return &Handlers{
+		service:     srv,
+		histryLimit: historyLimit,
+	}
 }
 
 func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
-	if params.Limit == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "limit is required")
-	} else if *params.Limit < 0 {
-		return fiber.NewError(fiber.StatusBadRequest, "limit must be positive")
+	limit := s.histryLimit
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	if limit > s.histryLimit {
+		limit = s.histryLimit
 	}
 
-	ratesMap, err := s.service.GetRates(c.Context(), uint(*params.Limit))
+	ratesMap, err := s.service.GetRates(c.Context(), limit)
 	if err != nil {
 		return err
 	}
@@ -32,13 +38,15 @@ func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
 }
 
 func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRateByCurrencyParams) error {
-	if params.Limit == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "limit is required")
-	} else if *params.Limit < 0 {
-		return fiber.NewError(fiber.StatusBadRequest, "limit must be positive")
+	limit := s.histryLimit
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	if limit > s.histryLimit {
+		limit = s.histryLimit
 	}
 
-	ratesMap, err := s.service.GetRate(c.Context(), currency, uint(*params.Limit))
+	ratesMap, err := s.service.GetRate(c.Context(), currency, limit)
 	if err != nil {
 		return err
 	}

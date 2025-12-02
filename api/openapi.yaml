@@ -22,7 +22,7 @@ paths:
           example: 10
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         '200':
           description: Successfully received all rates
@@ -59,7 +59,7 @@ paths:
           example: 10
           schema:
             type: integer
-            format: int32
+            format: uint32
       responses:
         '200':
           description: Rate for specific currency pulled successfully

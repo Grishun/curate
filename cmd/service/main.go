@@ -40,7 +40,7 @@ func main() {
 		Action:      run,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "rest-host", // TODO: need implement
+				Name:    "rest-host",
 				Value:   "127.0.0.1",
 				Sources: namedEnv("HTTP_HOST"),
 			},
@@ -64,7 +64,7 @@ func main() {
 				Value:   "USD",
 				Sources: namedEnv("QUOTE"),
 			},
-			&cli.UintFlag{
+			&cli.Uint32Flag{
 				Name:    "history-limit",
 				Value:   10,
 				Sources: namedEnv("HISTORY_LIMIT"),
@@ -136,7 +136,9 @@ func run(ctx context.Context, c *cli.Command) error {
 	//	influx.With
 	//	)
 
-	storage := memory.New(cfg.HistoryLimit)
+	storage := memory.New(
+		memory.WithHistoryLimit(cfg.HistoryLimit),
+	)
 
 	svc := service.New(
 		service.WithProviders(provider),
@@ -144,6 +146,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		service.WithLogger(logger),
 		service.WithPollingInterval(cfg.PollingInterval),
 		service.WithQuote(cfg.Quote),
+		service.WithHistoryLimit(cfg.HistoryLimit),
 	)
 
 	go func() {
@@ -152,7 +155,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		}
 	}()
 
-	httpRouter := http.NewRouter(svc)
+	httpRouter := http.NewRouter(svc, cfg.HistoryLimit)
 	errCh := make(chan error, 1)
 
 	go func() {

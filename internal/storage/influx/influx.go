@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	http2 "net/http"
-	"os"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,6 +22,11 @@ type Client struct {
 	hostURI    string
 	token      string
 }
+
+var (
+	ErrUnavailableCurrency = errors.New("don't know this currency")
+	ErrFailedToParseData   = errors.New("error parsing data from influx map")
+)
 
 func NewClient(hostURI, token, database string, opts ...Option) (*Client, error) {
 	options := NewOptions(opts...)
@@ -105,11 +108,9 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-var unavailableCurrencyErr = errors.New("don't know this currency")
-
 func (c *Client) Get(ctx context.Context, currecny string, limit uint) ([]domain.Rate, error) {
 	if !slices.Contains(c.options.currencies, currecny) {
-		return nil, unavailableCurrencyErr
+		return nil, ErrUnavailableCurrency
 	}
 
 	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`, strings.ToUpper(currecny), limit)
@@ -133,8 +134,6 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint) ([]domain
 
 	return rates, nil
 }
-
-var failedToParseDataErr = errors.New("error parsing data from influx map")
 
 func (c *Client) GetAll(ctx context.Context, limit uint) (map[string][]domain.Rate, error) {
 	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`,
@@ -166,41 +165,30 @@ func (c *Client) GetAll(ctx context.Context, limit uint) (map[string][]domain.Ra
 	return ratesMap, nil
 }
 
-func (c *Client) GetHistoryLimit() uint {
-	limit := os.Getenv("CURRATE_HISTORY_LIMIT")
-
-	lim, err := strconv.Atoi(limit)
-	if err != nil {
-		c.options.logger.Error("failed to parse CURRATE_HISTORY_LIMIT", "error", err)
-	}
-
-	return uint(lim)
-}
-
 func parseMapToRate(m map[string]any) (*domain.Rate, error) {
 	currency, ok := m["iox::measurement"].(string)
 	if !ok {
-		return nil, errors.Wrap(failedToParseDataErr, "failed to parse currency")
+		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse currency")
 	}
 
 	timestamp, ok := m["time"].(time.Time)
 	if !ok {
-		return nil, errors.Wrap(failedToParseDataErr, "failed to parse timestamp")
+		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse timestamp")
 	}
 
 	value, ok := m["value"].(float64)
 	if !ok {
-		return nil, errors.Wrap(failedToParseDataErr, "failed to parse value")
+		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse value")
 	}
 
 	quote, ok := m["quote"].(string)
 	if !ok {
-		return nil, errors.Wrap(failedToParseDataErr, "failed to parse quote")
+		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse quote")
 	}
 
 	provider, ok := m["provider"].(string)
 	if !ok {
-		return nil, errors.Wrap(failedToParseDataErr, "failed to parse provider")
+		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse provider")
 	}
 
 	return &domain.Rate{

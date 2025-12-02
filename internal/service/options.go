@@ -1,8 +1,6 @@
 package service
 
 import (
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/Grishun/curate/internal/domain"
@@ -19,6 +17,7 @@ type Options struct {
 	providers       []domain.Provider
 	pollingInterval time.Duration
 	quote           string
+	historyLimit    uint32
 }
 
 func WithLogger(l domain.Logger) Option {
@@ -51,11 +50,16 @@ func WithQuote(quote string) Option {
 	}
 }
 
+func WithHistoryLimit(limit uint32) Option {
+	return func(options *Options) {
+		options.historyLimit = limit
+	}
+}
+
 func NewOptions() *Options {
-	memLimit, _ := strconv.Atoi(os.Getenv("CURATE_HISTORY_LIMIT"))
 	return &Options{
 		logger:          log.NewSlog(),
-		storage:         memory.New(uint(memLimit)),
+		storage:         memory.New(),
 		providers:       []domain.Provider{coindesk.New()},
 		pollingInterval: time.Minute,
 		quote:           "USD",

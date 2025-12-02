@@ -8,29 +8,28 @@ import (
 )
 
 type Memory struct {
-	data         map[string][]domain.Rate
-	mu           sync.RWMutex
-	historyLimit uint
+	data map[string][]domain.Rate
+	mu   sync.RWMutex
+	opts *Options
 }
 
-func New(historyLimit uint) *Memory {
+func New(opts ...Option) *Memory {
+	options := NewOptions()
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	return &Memory{
-		mu:           sync.RWMutex{},
-		data:         make(map[string][]domain.Rate),
-		historyLimit: historyLimit,
+		mu:   sync.RWMutex{},
+		data: make(map[string][]domain.Rate),
+		opts: options,
 	}
 }
 
-func (m *Memory) GetHistoryLimit() uint {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return m.historyLimit
-}
-
-func (m *Memory) Get(_ context.Context, currency string, limit uint) ([]domain.Rate, error) {
-	if limit > m.historyLimit {
-		limit = m.historyLimit
+func (m *Memory) Get(_ context.Context, currency string, limit uint32) ([]domain.Rate, error) {
+	if limit > m.opts.historyLimit {
+		limit = m.opts.historyLimit
 	}
 
 	m.mu.RLock()
@@ -50,9 +49,9 @@ func (m *Memory) Get(_ context.Context, currency string, limit uint) ([]domain.R
 	return ratesCopy, nil
 }
 
-func (m *Memory) GetAll(_ context.Context, limit uint) (map[string][]domain.Rate, error) {
-	if limit > m.historyLimit {
-		limit = m.historyLimit
+func (m *Memory) GetAll(_ context.Context, limit uint32) (map[string][]domain.Rate, error) {
+	if limit > m.opts.historyLimit {
+		limit = m.opts.historyLimit
 	}
 
 	// create a new map to avoid race condition
@@ -85,7 +84,7 @@ func (m *Memory) Insert(_ context.Context, rates ...domain.Rate) error {
 	for _, newRate := range rates {
 		rate, ok := m.data[newRate.Currency]
 		if !ok {
-			rate = make([]domain.Rate, 0, m.historyLimit)
+			rate = make([]domain.Rate, 0, m.opts.historyLimit)
 			m.data[newRate.Currency] = rate
 		}
 

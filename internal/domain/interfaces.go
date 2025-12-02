@@ -7,9 +7,8 @@ import (
 )
 
 type Storage interface {
-	Get(ctx context.Context, currecny string, limit uint) ([]Rate, error)
-	GetAll(ctx context.Context, limit uint) (map[string][]Rate, error)
-	GetHistoryLimit() uint
+	Get(ctx context.Context, currecny string, limit uint32) ([]Rate, error)
+	GetAll(ctx context.Context, limit uint32) (map[string][]Rate, error)
 
 	Insert(ctx context.Context, rates ...Rate) error
 
