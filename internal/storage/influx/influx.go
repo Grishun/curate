@@ -81,12 +81,23 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	)
 
 	if err != nil {
-		c.options.logger.Error("influx is not responding", "error", err)
 		return err
 	}
-
 	if resp.StatusCode != http2.StatusOK {
-		return fmt.Errorf("non statusok response from influx (%d)", resp.StatusCode)
+		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
+	}
+
+	resp, err = c.httpClient.Do(
+		rest.WithURI(c.hostURI+"/ping"),
+		rest.WithMethod(http2.MethodGet),
+		rest.WithRequestContext(ctx),
+	)
+
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http2.StatusOK {
+		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
 	}
 
 	c.options.logger.Debug("influx is up and ready")
