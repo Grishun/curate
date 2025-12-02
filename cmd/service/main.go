@@ -52,7 +52,7 @@ func main() {
 			&cli.DurationFlag{
 				Name:    "polling-interval",
 				Value:   time.Minute,
-				Sources: namedEnv("POOLING_INTERVAL"),
+				Sources: namedEnv("POLLING_INTERVAL"),
 			},
 			&cli.StringSliceFlag{
 				Name:    "currencies",

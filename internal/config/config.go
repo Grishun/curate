@@ -9,7 +9,7 @@ import (
 type Config struct {
 	HTTPHost        string        `yaml:"http_host"`
 	HTTPPort        string        `yaml:"http_port"`
-	PollingInterval time.Duration `yaml:"pooling_interval"`
+	PollingInterval time.Duration `yaml:"polling_interval"`
 	Currencies      []string      `yaml:"currencies"`
 	Quote           string        `yaml:"quote"`
 	CoindeskURL     string        `yaml:"coindesk_url"`
