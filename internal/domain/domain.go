@@ -14,12 +14,11 @@ type HistoryPoint struct {
 }
 
 type Rate struct {
-	Currency string `json:"code"`
-	Quote    string `json:"quote"`
-	Provider string `json:"provider"`
-	//History   []HistoryPoint `json:"history"` // TODO: change it with linked list
-	Value     float64   `json:"value"`
-	Timestamp time.Time `json:"timestamp"`
+	Currency  string    `lp:"measuremnt" json:"currency"`
+	Quote     string    `lp:"tag,quote" json:"quote"`
+	Provider  string    `lp:"tag,provider" json:"provider"`
+	Value     float64   `lp:"field,value" json:"value"`
+	Timestamp time.Time `lp:"timestamp" json:"timestamp"`
 	//Metadata  map[string]any `json:"metadata"`
 }
 

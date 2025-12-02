@@ -14,7 +14,10 @@ type Config struct {
 	Quote           string        `yaml:"quote"`
 	CoindeskURL     string        `yaml:"coindesk_url"`
 	CoindeskToken   string        `yaml:"coindesk_token"`
-	HistoryLimit    uint
+	HistoryLimit    uint          `yaml:"history_limit"`
+	InfluxDBURI     string        `yaml:"influxdb_uri"`
+	InfluxDBToken   string        `yaml:"influxdb_token"`
+	InfluxDBBucket  string        `yaml:"influxdb_bucket"`
 }
 
 // New parse config from urfave/cli flags and create Config struct
@@ -28,6 +31,9 @@ func New(c *cli.Command) *Config {
 		CoindeskURL:     c.String("coindesk-url"),
 		CoindeskToken:   c.String("coindesk-token"),
 		HistoryLimit:    c.Uint("history-limit"),
+		InfluxDBURI:     c.String("influxdb-url"),
+		InfluxDBToken:   c.String("influxdb-token"),
+		InfluxDBBucket:  c.String("influxdb-bucket"),
 	}
 
 	return &cfg

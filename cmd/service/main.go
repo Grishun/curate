@@ -40,7 +40,7 @@ func main() {
 		Action:      run,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "rest-host", // TODO: need to transfer it to config
+				Name:    "rest-host", // TODO: need implement
 				Value:   "127.0.0.1",
 				Sources: namedEnv("HTTP_HOST"),
 			},
@@ -78,6 +78,22 @@ func main() {
 				Name:    "coindesk-token",
 				Value:   "",
 				Sources: cli.EnvVars("COINDESK_TOKEN"),
+			},
+
+			&cli.StringFlag{
+				Name:    "influxdb-uri",
+				Value:   "127.0.0.1:8181",
+				Sources: cli.EnvVars("INFLUXDB_URL"),
+			},
+			&cli.StringFlag{
+				Name:    "influxdb-token",
+				Value:   "",
+				Sources: cli.EnvVars("INFLUXDB_TOKEN"),
+			},
+			&cli.StringFlag{
+				Name:    "influxdb-bucket",
+				Value:   "",
+				Sources: cli.EnvVars("INFLUXDB_BUCKET"),
 			},
 		},
 	}

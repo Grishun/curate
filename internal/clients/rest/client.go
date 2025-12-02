@@ -11,7 +11,7 @@ type Client struct {
 	*resty.Client
 }
 
-func NewClient(opts ...ClientOption) Client {
+func NewClient(opts ...ClientOption) *Client {
 	options := NewClientOptions()
 
 	for _, opt := range opts {
@@ -27,7 +27,7 @@ func NewClient(opts ...ClientOption) Client {
 		SetAuthScheme(options.authScheme).
 		SetTimeout(options.timeout)
 
-	return Client{restyClient}
+	return &Client{restyClient}
 }
 
 func (c *Client) Do(opts ...domain.RequestOption) (*http.Response, error) {

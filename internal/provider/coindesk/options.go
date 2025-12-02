@@ -11,7 +11,7 @@ type Option func(*Options)
 type Options struct {
 	uri        string
 	token      string
-	httpClient rest.Client
+	httpClient *rest.Client
 	quote      string
 	currencies []string
 	logger     domain.Logger
@@ -40,7 +40,7 @@ func WithToken(token string) Option {
 	}
 }
 
-func WithHTTPClient(httpClient rest.Client) Option {
+func WithHTTPClient(httpClient *rest.Client) Option {
 	return func(options *Options) {
 		options.httpClient = httpClient
 	}
