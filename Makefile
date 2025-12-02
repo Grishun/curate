@@ -6,5 +6,8 @@ generate:
 test:
 	@go test ./...
 
-build-docker:
+docker-build:
 	@docker build . -t curate-dev
+
+run:
+	@docker compose up -d

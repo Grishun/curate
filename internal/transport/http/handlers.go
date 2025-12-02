@@ -34,7 +34,7 @@ func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
 
 	ratesMap, err := s.options.service.GetRates(c.Context(), limit)
 	if err != nil {
-		return err
+		return c.JSON(goErrorTocCustom(err))
 	}
 
 	return c.JSON(mapDomainRatesToOpenAPIRates(ratesMap))
@@ -51,7 +51,7 @@ func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRa
 
 	rates, err := s.options.service.GetRate(c.Context(), currency, limit)
 	if err != nil {
-		return err
+		return c.JSON(goErrorTocCustom(err))
 	}
 
 	return c.JSON(mapDomainRateToOpenAPIRate(rates))
@@ -59,7 +59,7 @@ func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRa
 
 func (s *Handlers) HealthCheck(c *fiber.Ctx) error {
 	if err := s.options.service.HealthCheck(c.Context()); err != nil {
-		return err
+		return c.JSON(goErrorTocCustom(err))
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -67,4 +67,10 @@ func (s *Handlers) HealthCheck(c *fiber.Ctx) error {
 
 func (s *Handlers) GetAllCurrencies(c *fiber.Ctx) error {
 	return c.JSON(s.options.currecies)
+}
+
+func goErrorTocCustom(err error) Error {
+	return Error{
+		Message: err.Error(),
+	}
 }
