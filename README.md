@@ -1,6 +1,6 @@
 # Curate
 
-Curate fetches cryptocurrency exchange rates for a target quote currency, stores history in InfluxDB, and exposes them
+Curate fetches cryptocurrency exchange rates for a target quote currency, stores history in InfluxDB (or in memory), and exposes them
 over an HTTP API.
 
 ## Environment
