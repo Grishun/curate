@@ -11,6 +11,7 @@ import (
 	"github.com/Grishun/curate/internal/domain"
 	influx "github.com/InfluxCommunity/influxdb3-go/v2/influxdb3"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/slices"
 )
 
 type Client struct {
@@ -97,7 +98,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 }
 
 func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]domain.Rate, error) {
-	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time ASC LIMIT %d`, strings.ToUpper(currecny), limit)
+	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`, strings.ToUpper(currecny), limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
@@ -116,11 +117,14 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]doma
 		rates = append(rates, *rate)
 	}
 
+	rates = slices.Clip(rates)
+	slices.Reverse(rates)
+
 	return rates, nil
 }
 
 func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
-	query := fmt.Sprintf(`SELECT * FROM /.*/ ORDER BY time ASC LIMIT %d`, limit)
+	query := fmt.Sprintf(`SELECT * FROM /.*/ ORDER BY time DESC LIMIT %d`, limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
@@ -143,6 +147,11 @@ func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.
 
 		rates = append(rates, *rate)
 		ratesMap[rate.Currency] = rates
+	}
+
+	for currency, rates := range ratesMap {
+		slices.Reverse(rates)
+		ratesMap[currency] = slices.Clip(rates)
 	}
 
 	return ratesMap, nil

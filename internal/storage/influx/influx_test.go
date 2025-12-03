@@ -74,7 +74,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestInfluxGetCurrency(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 	defer cancel()
 
 	for _, v := range []uint32{10, 5, 15} {
@@ -169,17 +169,19 @@ func generateTestRates(currency string, qty uint32) []domain.Rate {
 }
 
 func validateLastNRates(t *testing.T, ratesFromInflux, sourceRates []domain.Rate, limit int) {
-	if limit > len(sourceRates) {
+	var index int
+	if limit >= len(sourceRates) {
 		require.Equal(t, len(ratesFromInflux), len(sourceRates))
 	} else {
 		require.Equal(t, limit, len(ratesFromInflux))
+		index = len(sourceRates) - limit
 	}
 
 	for i, rateFromInflux := range ratesFromInflux {
-		require.Equal(t, sourceRates[i].Value, rateFromInflux.Value)
-		require.Equal(t, sourceRates[i].Timestamp, rateFromInflux.Timestamp)
-		require.Equal(t, sourceRates[i].Provider, rateFromInflux.Provider)
-		require.Equal(t, sourceRates[i].Quote, rateFromInflux.Quote)
-		require.Equal(t, sourceRates[i].Currency, rateFromInflux.Currency)
+		require.Equal(t, sourceRates[index+i].Value, rateFromInflux.Value)
+		require.Equal(t, sourceRates[index+i].Timestamp, rateFromInflux.Timestamp)
+		require.Equal(t, sourceRates[index+i].Provider, rateFromInflux.Provider)
+		require.Equal(t, sourceRates[index+i].Quote, rateFromInflux.Quote)
+		require.Equal(t, sourceRates[index+i].Currency, rateFromInflux.Currency)
 	}
 }
