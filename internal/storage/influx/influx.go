@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	http2 "net/http"
-	"slices"
 	"strings"
 	"time"
 
@@ -21,12 +20,11 @@ type Client struct {
 }
 
 var (
-	ErrUnavailableCurrency = errors.New("don't know this currency")
-	ErrFailedToParseData   = errors.New("error parsing data from influx map")
+	ErrFailedToParseData = errors.New("error parsing data from influx map")
 )
 
 func NewClient(opts ...Option) (*Client, error) {
-	options := NewOptions(opts...)
+	options := NewOptions()
 
 	for _, opt := range opts {
 		opt(options)
@@ -99,11 +97,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 }
 
 func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]domain.Rate, error) {
-	if !slices.Contains(c.options.currencies, currecny) {
-		return nil, ErrUnavailableCurrency
-	}
-
-	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`, strings.ToUpper(currecny), limit)
+	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time ASC LIMIT %d`, strings.ToUpper(currecny), limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
@@ -126,15 +120,14 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]doma
 }
 
 func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
-	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`,
-		strings.Join(c.options.currencies, ","), limit)
+	query := fmt.Sprintf(`SELECT * FROM /.*/ ORDER BY time ASC LIMIT %d`, limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
 		return nil, err
 	}
 
-	ratesMap := make(map[string][]domain.Rate, len(c.options.currencies))
+	ratesMap := make(map[string][]domain.Rate)
 	for i := 0; response.Next(); i++ {
 		v := response.Value()
 

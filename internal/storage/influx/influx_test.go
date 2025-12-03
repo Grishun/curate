@@ -32,10 +32,10 @@ func TestMain(m *testing.M) {
 
 	// prepare influxdb3 container
 	container, hostPort, err = runGenericInfluxV3(ctx, dbName)
+	defer container.Terminate(ctx)
 	if err != nil {
 		panic(err)
 	}
-	defer container.Terminate(ctx)
 
 	// prepare client
 	influxClient, err = NewClient(
@@ -53,7 +53,16 @@ func TestMain(m *testing.M) {
 		"TRX": generateTestRates("TRX", ratesQuantity),
 	}
 
+	// insert test data
+	for _, rates := range testRatesMap {
+		if err = influxClient.Insert(ctx, rates...); err != nil {
+			panic(err)
+		}
+
+	}
+
 	if code := m.Run(); code != 0 {
+		_ = container.Terminate(ctx)
 		os.Exit(code)
 	}
 }
@@ -64,24 +73,18 @@ func TestHealthCheck(t *testing.T) {
 	}, time.Second*5, time.Second)
 }
 
-func TestInfluxInsertAndGetCurrency(t *testing.T) {
+func TestInfluxGetCurrency(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	// insert test data
-	for _, rates := range testRatesMap {
-		err = influxClient.Insert(ctx, rates...)
-		require.NoError(t, err)
-	}
-
 	for _, v := range []uint32{10, 5, 15} {
 		t.Run(fmt.Sprintf("limit=%d", v), func(t *testing.T) {
-			testInfluxInsertAndGetCurrency(t, ctx, v)
+			testInfluxGetCurrency(t, ctx, v)
 		})
 	}
 }
 
-func testInfluxInsertAndGetCurrency(t *testing.T, ctx context.Context, limit uint32) {
+func testInfluxGetCurrency(t *testing.T, ctx context.Context, limit uint32) {
 	for currency, sourceRates := range testRatesMap {
 		ratesFromInflux, err := influxClient.Get(ctx, currency, limit)
 		require.NoError(t, err)
@@ -89,27 +92,27 @@ func testInfluxInsertAndGetCurrency(t *testing.T, ctx context.Context, limit uin
 	}
 }
 
-func TestInfluxInsertAndGetAll(t *testing.T) {
+func TestInfluxGetAll(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
 	// validate GetAll
 	for _, v := range []uint32{10, 5, 15} {
 		t.Run(fmt.Sprintf("limit=%d", v), func(t *testing.T) {
-			testInfluxInsertAndGetAll(t, ctx, v)
+			testInfluxGetAll(t, ctx, v)
 		})
 	}
 }
 
-func testInfluxInsertAndGetAll(t *testing.T, ctx context.Context, limit uint32) {
+func testInfluxGetAll(t *testing.T, ctx context.Context, limit uint32) {
 	influxRatesMap, err := influxClient.GetAll(ctx, limit)
 	require.NoError(t, err)
 	require.Len(t, influxRatesMap, len(testRatesMap))
 
-	for currency, rates := range influxRatesMap {
+	for currency, ratesFromInflux := range influxRatesMap {
 		sourceRates, ok := testRatesMap[currency]
 		require.True(t, ok)
-		validateLastNRates(t, rates, sourceRates, int(limit))
+		validateLastNRates(t, ratesFromInflux, sourceRates, int(limit))
 	}
 }
 
@@ -141,6 +144,9 @@ func runGenericInfluxV3(ctx context.Context, dbName string) (testcontainers.Cont
 	}
 
 	hostPort, err := container.MappedPort(ctx, "8181")
+	if err != nil {
+		return nil, "", err
+	}
 
 	return container, hostPort.Port(), err
 }
@@ -170,10 +176,10 @@ func validateLastNRates(t *testing.T, ratesFromInflux, sourceRates []domain.Rate
 	}
 
 	for i, rateFromInflux := range ratesFromInflux {
-		require.Equal(t, sourceRates[len(sourceRates)-i-1].Value, rateFromInflux.Value)
-		require.Equal(t, sourceRates[len(sourceRates)-i-1].Timestamp, rateFromInflux.Timestamp)
-		require.Equal(t, sourceRates[len(sourceRates)-i-1].Provider, rateFromInflux.Provider)
-		require.Equal(t, sourceRates[len(sourceRates)-i-1].Quote, rateFromInflux.Quote)
-		require.Equal(t, sourceRates[len(sourceRates)-i-1].Currency, rateFromInflux.Currency)
+		require.Equal(t, sourceRates[i].Value, rateFromInflux.Value)
+		require.Equal(t, sourceRates[i].Timestamp, rateFromInflux.Timestamp)
+		require.Equal(t, sourceRates[i].Provider, rateFromInflux.Provider)
+		require.Equal(t, sourceRates[i].Quote, rateFromInflux.Quote)
+		require.Equal(t, sourceRates[i].Currency, rateFromInflux.Currency)
 	}
 }

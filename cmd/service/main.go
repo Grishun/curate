@@ -130,11 +130,12 @@ func run(ctx context.Context, c *cli.Command) error {
 		influx.WithToken(cfg.InfluxDBToken),
 		influx.WithDatabase(cfg.InfluxDBBucket),
 		influx.WithLogger(logger),
-		influx.WithCurrencies(cfg.Currencies...),
 	)
 	if err != nil {
 		return err
 	}
+
+	//storage := memory.New()
 
 	svc := service.New(
 		service.WithProviders(provider),

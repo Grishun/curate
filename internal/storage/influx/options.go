@@ -11,7 +11,6 @@ type Options struct {
 	writeTimeout time.Duration
 	queryTimeout time.Duration
 	logger       domain.Logger
-	currencies   []string
 	database     string
 	hostURI      string
 	token        string
@@ -37,12 +36,6 @@ func WithQueryTimeout(timeout time.Duration) Option {
 	}
 }
 
-func WithCurrencies(currencies ...string) Option {
-	return func(opt *Options) {
-		opt.currencies = currencies
-	}
-}
-
 func WithDatabase(database string) Option {
 	return func(opt *Options) {
 		opt.database = database
@@ -62,12 +55,11 @@ func WithToken(token string) Option {
 }
 
 // NewOptions returns an empty Options struct! REQUIRED to fill it with options
-func NewOptions(opts ...Option) *Options {
+func NewOptions() *Options {
 	return &Options{
 		logger:       log.NewSlog(),
 		writeTimeout: 10 * time.Second,
 		queryTimeout: time.Minute,
-		currencies:   []string{"BTC", "ETH", "TRX"},
 		database:     "curate",
 		hostURI:      "127.0.0.1:8181",
 		token:        "dev-token",
