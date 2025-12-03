@@ -18,6 +18,7 @@ type Config struct {
 	InfluxDBURI     string        `yaml:"influxdb_uri"`
 	InfluxDBToken   string        `yaml:"influxdb_token"`
 	InfluxDBBucket  string        `yaml:"influxdb_bucket"`
+	InMemoryStorage bool          `yaml:"in_memory_storage"`
 }
 
 // New parse config from urfave/cli flags and create Config struct
@@ -34,6 +35,7 @@ func New(c *cli.Command) *Config {
 		InfluxDBURI:     c.String("influxdb-uri"),
 		InfluxDBToken:   c.String("influxdb-token"),
 		InfluxDBBucket:  c.String("influxdb-bucket"),
+		InMemoryStorage: c.Bool("in-memory-storage"),
 	}
 
 	return &cfg

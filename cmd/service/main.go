@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/Grishun/curate/internal/clients/rest"
+	"github.com/Grishun/curate/internal/domain"
 	"github.com/Grishun/curate/internal/storage/influx"
+	"github.com/Grishun/curate/internal/storage/memory"
 	"github.com/urfave/cli/v3"
 
 	"github.com/Grishun/curate/internal/config"
@@ -51,7 +53,7 @@ func main() {
 			},
 			&cli.DurationFlag{
 				Name:    "polling-interval",
-				Value:   time.Minute,
+				Value:   time.Second * 10,
 				Sources: namedEnv("POLLING_INTERVAL"),
 			},
 			&cli.StringSliceFlag{
@@ -78,6 +80,11 @@ func main() {
 				Name:    "coindesk-token",
 				Value:   "",
 				Sources: namedEnv("COINDESK_TOKEN"),
+			},
+			&cli.BoolFlag{
+				Name:    "in-memory-storage",
+				Value:   false,
+				Sources: namedEnv("IN_MEMORY_STORAGE"),
 			},
 
 			&cli.StringFlag{
@@ -125,14 +132,23 @@ func run(ctx context.Context, c *cli.Command) error {
 		coindesk.WithHTTPClient(httpClient),
 	)
 
-	storage, err := influx.NewClient(
-		influx.WithHostURI(cfg.InfluxDBURI),
-		influx.WithToken(cfg.InfluxDBToken),
-		influx.WithDatabase(cfg.InfluxDBBucket),
-		influx.WithLogger(logger),
+	var (
+		storage domain.Storage
+		err     error
 	)
-	if err != nil {
-		return err
+
+	if cfg.InMemoryStorage {
+		storage = memory.New()
+	} else {
+		storage, err = influx.NewClient(
+			influx.WithHostURI(cfg.InfluxDBURI),
+			influx.WithToken(cfg.InfluxDBToken),
+			influx.WithDatabase(cfg.InfluxDBBucket),
+			influx.WithLogger(logger),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	svc := service.New(
