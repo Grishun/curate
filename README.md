@@ -26,6 +26,7 @@ All flags can be provided via CLI or env vars with prefix `CURATE_`.
 #### Run locally:
 
 ```
+make docker-build
 make run
 # or if you don't need InfluxDB:
 go run ./cmd/service --rest-host=127.0.0.1 --rest-port=8080 --in-memory-storage=true
