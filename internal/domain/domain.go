@@ -16,7 +16,7 @@ type Rate struct {
 	Currency  string    `lp:"measurement" json:"currency"`
 	Quote     string    `lp:"tag,quote" json:"quote"`
 	Provider  string    `lp:"tag,provider" json:"provider"`
-	Value     float64   `lp:"field,value" json:"value"`
+	Value     float64   `lp:"field,value" json:"value"` // TODO: use decimal instead
 	Timestamp time.Time `lp:"timestamp" json:"timestamp"`
 	//Metadata  map[string]any `json:"metadata"`
 }
