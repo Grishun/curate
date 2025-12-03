@@ -135,8 +135,6 @@ func run(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	//storage := memory.New()
-
 	svc := service.New(
 		service.WithProviders(provider),
 		service.WithStorage(storage),
