@@ -32,10 +32,15 @@ func (s *Handlers) GetAllRates(c *fiber.Ctx, params GetAllRatesParams) error {
 		limit = s.options.historyLimit
 	}
 
+	s.options.logger.Debug("handling GetAllRates request", "limit", limit)
+
 	ratesMap, err := s.options.service.GetRates(c.Context(), limit)
 	if err != nil {
+		s.options.logger.Error("failed to handle GetAllRates", "limit", limit, "error", err)
 		return c.JSON(goErrorTocCustom(err))
 	}
+
+	s.options.logger.Info("responding with all rates", "limit", limit, "currency_count", len(ratesMap))
 
 	return c.JSON(mapDomainRatesToOpenAPIRates(ratesMap))
 }
@@ -49,23 +54,33 @@ func (s *Handlers) GetRateByCurrency(c *fiber.Ctx, currency string, params GetRa
 		limit = s.options.historyLimit
 	}
 
+	s.options.logger.Debug("handling GetRateByCurrency request", "currency", currency, "limit", limit)
+
 	rates, err := s.options.service.GetRate(c.Context(), currency, limit)
 	if err != nil {
+		s.options.logger.Error("failed to handle GetRateByCurrency", "currency", currency, "limit", limit, "error", err)
 		return c.JSON(goErrorTocCustom(err))
 	}
+
+	s.options.logger.Info("responding with currency rates", "currency", currency, "limit", limit, "count", len(rates))
 
 	return c.JSON(mapDomainRateToOpenAPIRate(rates))
 }
 
 func (s *Handlers) HealthCheck(c *fiber.Ctx) error {
+	s.options.logger.Debug("handling HealthCheck")
 	if err := s.options.service.HealthCheck(c.Context()); err != nil {
+		s.options.logger.Error("healthcheck failed", "error", err)
 		return c.JSON(goErrorTocCustom(err))
 	}
+
+	s.options.logger.Info("healthcheck passed")
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (s *Handlers) GetAllCurrencies(c *fiber.Ctx) error {
+	s.options.logger.Debug("handling GetAllCurrencies", "count", len(s.options.currecies))
 	return c.JSON(s.options.currecies)
 }
 

@@ -34,3 +34,8 @@ func (l *SlogProvider) Warnf(format string, v ...any) {
 func (l *SlogProvider) Debugf(format string, v ...any) {
 	l.Debug(fmt.Sprintf(format, v...))
 }
+
+// Printf keeps compatibility with log-style interfaces (e.g. resty.Logger)
+func (l *SlogProvider) Printf(format string, v ...any) {
+	l.Info(fmt.Sprintf(format, v...))
+}

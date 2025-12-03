@@ -152,7 +152,12 @@ func run(ctx context.Context, c *cli.Command) error {
 		}
 	}()
 
-	httpRouter := http.NewRouter(svc, cfg.HistoryLimit, cfg.Currencies)
+	httpRouter := http.NewRouter(
+		http.WithRouterService(svc),
+		http.WithRouterHistoryLimit(cfg.HistoryLimit),
+		http.WithRouterLogger(logger),
+		http.WithRouterCurrencies(cfg.Currencies),
+	)
 	errCh := make(chan error, 1)
 
 	go func() {

@@ -22,6 +22,7 @@ type Client struct {
 
 var (
 	ErrFailedToParseData = errors.New("error parsing data from influx map")
+	ErrInfluxNotReady    = errors.New("influx is not ready to receive quiries yet")
 )
 
 func NewClient(opts ...Option) (*Client, error) {
@@ -43,10 +44,11 @@ func NewClient(opts ...Option) (*Client, error) {
 	})
 
 	if err != nil {
+		options.logger.Error("failed to create influx client", "error", err)
 		return nil, err
 	}
 
-	options.logger.Debug("created influx client",
+	options.logger.Info("created influx client",
 		"host", options.hostURI, "database", options.database)
 
 	return &Client{
@@ -63,21 +65,31 @@ func (c *Client) Insert(ctx context.Context, rates ...domain.Rate) error {
 	}
 
 	err := c.client.WriteData(ctx, ratesToWrite)
+	if err != nil {
+		c.options.logger.Error("failed to write rates to influx", "count", len(ratesToWrite), "error", err)
+		return err
+	}
 
-	return err
+	c.options.logger.Info("inserted rates to influx", "count", len(ratesToWrite))
+
+	return nil
 }
 
 func (c *Client) HealthCheck(ctx context.Context) error {
+	c.options.logger.Debug("running influx healthcheck")
+
 	resp, err := c.httpClient.Do(ctx,
-		rest.WithURI(c.options.hostURI+"/health"),
+		rest.WithURI(c.options.hostURI+"/api/v3/databases"),
 		rest.WithMethod(http2.MethodGet),
 	)
 
 	if err != nil {
+		c.options.logger.Error("influx databases check failed", "error", err)
 		return err
 	}
 	if resp.StatusCode != http2.StatusOK {
-		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
+		c.options.logger.Error("influx databases endpoint not ready", "status", resp.StatusCode)
+		return ErrInfluxNotReady
 	}
 
 	resp, err = c.httpClient.Do(ctx,
@@ -86,10 +98,12 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	)
 
 	if err != nil {
+		c.options.logger.Error("influx ping failed", "error", err)
 		return err
 	}
 	if resp.StatusCode != http2.StatusOK {
-		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
+		c.options.logger.Error("influx ping endpoint not ready", "status", resp.StatusCode)
+		return ErrInfluxNotReady
 	}
 
 	c.options.logger.Debug("influx is up and ready")
@@ -98,10 +112,13 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 }
 
 func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]domain.Rate, error) {
+	c.options.logger.Debug("querying influx for currency", "currency", currecny, "limit", limit)
+
 	query := fmt.Sprintf(`SELECT * FROM %s ORDER BY time DESC LIMIT %d`, strings.ToUpper(currecny), limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
+		c.options.logger.Error("influx query failed", "currency", currecny, "limit", limit, "error", err)
 		return nil, err
 	}
 
@@ -109,8 +126,9 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]doma
 	for i := 0; response.Next(); i++ {
 		v := response.Value()
 
-		rate, err := parseMapToRate(v)
+		rate, err := c.parseMapToRate(v)
 		if err != nil {
+			c.options.logger.Error("failed to parse influx row", "currency", currecny, "error", err)
 			return nil, err
 		}
 
@@ -120,14 +138,19 @@ func (c *Client) Get(ctx context.Context, currecny string, limit uint32) ([]doma
 	rates = slices.Clip(rates)
 	slices.Reverse(rates)
 
+	c.options.logger.Info("fetched rates from influx", "currency", currecny, "count", len(rates))
+
 	return rates, nil
 }
 
 func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
+	c.options.logger.Debug("querying influx for all currencies", "limit", limit)
+
 	query := fmt.Sprintf(`SELECT * FROM /.*/ ORDER BY time DESC LIMIT %d`, limit)
 
 	response, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
+		c.options.logger.Error("influx multi-currency query failed", "limit", limit, "error", err)
 		return nil, err
 	}
 
@@ -135,8 +158,9 @@ func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.
 	for i := 0; response.Next(); i++ {
 		v := response.Value()
 
-		rate, err := parseMapToRate(v)
+		rate, err := c.parseMapToRate(v)
 		if err != nil {
+			c.options.logger.Error("failed to parse influx row", "error", err)
 			return nil, err
 		}
 
@@ -154,33 +178,45 @@ func (c *Client) GetAll(ctx context.Context, limit uint32) (map[string][]domain.
 		ratesMap[currency] = slices.Clip(rates)
 	}
 
+	c.options.logger.Info("fetched rates for all currencies", "limit", limit, "currency_count", len(ratesMap))
+
 	return ratesMap, nil
 }
 
-func parseMapToRate(m map[string]any) (*domain.Rate, error) {
+func (c *Client) parseMapToRate(m map[string]any) (*domain.Rate, error) {
 	currency, ok := m["iox::measurement"].(string)
 	if !ok {
-		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse currency")
+		err := errors.Wrap(ErrFailedToParseData, "failed to parse currency")
+		c.options.logger.Error("failed to parse influx currency", "error", err)
+		return nil, err
 	}
 
 	timestamp, ok := m["time"].(time.Time)
 	if !ok {
-		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse timestamp")
+		err := errors.Wrap(ErrFailedToParseData, "failed to parse timestamp")
+		c.options.logger.Error("failed to parse influx timestamp", "currency", currency, "error", err)
+		return nil, err
 	}
 
 	value, ok := m["value"].(float64)
 	if !ok {
-		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse value")
+		err := errors.Wrap(ErrFailedToParseData, "failed to parse value")
+		c.options.logger.Error("failed to parse influx value", "currency", currency, "error", err)
+		return nil, err
 	}
 
 	quote, ok := m["quote"].(string)
 	if !ok {
-		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse quote")
+		err := errors.Wrap(ErrFailedToParseData, "failed to parse quote")
+		c.options.logger.Error("failed to parse influx quote", "currency", currency, "error", err)
+		return nil, err
 	}
 
 	provider, ok := m["provider"].(string)
 	if !ok {
-		return nil, errors.Wrap(ErrFailedToParseData, "failed to parse provider")
+		err := errors.Wrap(ErrFailedToParseData, "failed to parse provider")
+		c.options.logger.Error("failed to parse influx provider", "currency", currency, "error", err)
+		return nil, err
 	}
 
 	return &domain.Rate{

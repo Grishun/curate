@@ -1,6 +1,10 @@
 package http
 
-import "github.com/Grishun/curate/internal/service"
+import (
+	"github.com/Grishun/curate/internal/domain"
+	"github.com/Grishun/curate/internal/log"
+	"github.com/Grishun/curate/internal/service"
+)
 
 type HandlerOption func(*HandlerOptions)
 
@@ -8,6 +12,7 @@ type HandlerOptions struct {
 	historyLimit uint32
 	currecies    []string
 	service      *service.Service
+	logger       domain.Logger
 }
 
 func NewHandlerOptions() *HandlerOptions {
@@ -15,6 +20,7 @@ func NewHandlerOptions() *HandlerOptions {
 		historyLimit: 10,
 		currecies:    []string{"BTC", "ETH", "TRX"},
 		service:      service.New(),
+		logger:       log.NewSlog(),
 	}
 }
 
@@ -33,5 +39,11 @@ func WithCurrencies(currencies []string) HandlerOption {
 func WithService(s *service.Service) HandlerOption {
 	return func(options *HandlerOptions) {
 		options.service = s
+	}
+}
+
+func WithLogger(l domain.Logger) HandlerOption {
+	return func(options *HandlerOptions) {
+		options.logger = l
 	}
 }

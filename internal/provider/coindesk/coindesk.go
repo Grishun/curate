@@ -33,6 +33,11 @@ func (c *Coindesk) Name() string {
 
 func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 	result := make(map[string]map[string]float64)
+	c.options.logger.Debug("fetching rates from coindesk provider",
+		"uri", c.options.uri+multSymbolsPrice,
+		"quote", c.options.quote,
+		"currencies", c.options.currencies,
+	)
 
 	params := url.Values{}
 	params.Add("fsyms", strings.Join(c.options.currencies, ","))
@@ -51,7 +56,15 @@ func (c *Coindesk) Fetch(ctx context.Context) (map[string]float64, error) {
 		rest.WithUnmarshallTo(&result),
 	)
 
-	return convert(result, c.options.quote), err
+	if err != nil {
+		c.options.logger.Error("failed to fetch rates from coindesk", "error", err)
+		return nil, err
+	}
+
+	converted := convert(result, c.options.quote)
+	c.options.logger.Info("fetched rates from coindesk", "count", len(converted))
+
+	return converted, nil
 }
 
 func convert(rates map[string]map[string]float64, quote string) map[string]float64 {

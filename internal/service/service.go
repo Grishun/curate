@@ -38,40 +38,77 @@ func New(opts ...Option) *Service {
 func (s *Service) Start(ctx context.Context) error {
 	s.options.logger.Debug("starting service")
 
-	s.scheduler.NewJob(
+	_, err := s.scheduler.NewJob(
 		gocron.DurationJob(s.options.pollingInterval),
 		gocron.NewTask(s.fetchAndStore),
 		gocron.WithContext(ctx),
 	)
+	if err != nil {
+		s.options.logger.Error("failed to schedule fetch job", "error", err)
+		return err
+	}
+
+	s.options.logger.Info("scheduled fetch job", "interval", s.options.pollingInterval)
 
 	s.scheduler.Start()
-	s.options.logger.Debug("fetch scheduler started")
+	s.options.logger.Info("fetch scheduler started")
 
 	<-ctx.Done()
 
-	return s.Stop(ctx)
+	if err := s.Stop(ctx); err != nil {
+		s.options.logger.Error("failed to stop service", "error", err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) Stop(_ context.Context) error {
 	s.options.logger.Debug("stopping service")
 
-	return s.scheduler.Shutdown()
+	if err := s.scheduler.Shutdown(); err != nil {
+		s.options.logger.Error("failed to shutdown scheduler", "error", err)
+		return err
+	}
+
+	s.options.logger.Info("scheduler stopped")
+
+	return nil
 }
 
 func (s *Service) GetRate(ctx context.Context, currency string, limit uint32) ([]domain.Rate, error) {
-	return s.options.storage.Get(ctx, currency, limit)
+	rates, err := s.options.storage.Get(ctx, currency, limit)
+	if err != nil {
+		s.options.logger.Error("failed to get rate", "currency", currency, "limit", limit, "error", err)
+		return nil, err
+	}
+
+	s.options.logger.Info("fetched rates for currency", "currency", currency, "count", len(rates))
+
+	return rates, nil
 }
 
 func (s *Service) GetRates(ctx context.Context, limit uint32) (map[string][]domain.Rate, error) {
-	return s.options.storage.GetAll(ctx, limit)
+	rates, err := s.options.storage.GetAll(ctx, limit)
+	if err != nil {
+		s.options.logger.Error("failed to get rates", "limit", limit, "error", err)
+		return nil, err
+	}
+
+	s.options.logger.Info("fetched rates for all currencies", "limit", limit, "currency_count", len(rates))
+
+	return rates, nil
 }
 
 func (s *Service) fetchAndStore(ctx context.Context) {
 	for _, provider := range s.options.providers {
+		s.options.logger.Debug("fetching rates from provider", "provider", provider.Name())
 		result, err := provider.Fetch(ctx)
 		if err != nil {
-			s.options.logger.Error("failed to fetch provider", "provider", provider, "error", err)
+			s.options.logger.Error("failed to fetch provider", "provider", provider.Name(), "error", err)
 		}
+
+		s.options.logger.Info("provider fetch finished", "provider", provider.Name(), "rates_count", len(result))
 
 		rates := make([]domain.Rate, 0, len(result))
 		for currency, value := range result {
@@ -84,14 +121,21 @@ func (s *Service) fetchAndStore(ctx context.Context) {
 			})
 		}
 
-		s.options.logger.Debug("fetched rates from provider. Calling for storage.Insert()", "provider", provider, "rates", rates)
+		s.options.logger.Debug("inserting provider rates", "provider", provider.Name(), "rates", rates)
 		err = s.options.storage.Insert(ctx, rates...)
 		if err != nil {
-			s.options.logger.Error("failed to insert rates to storage", "provider", provider, "error", err)
+			s.options.logger.Error("failed to insert rates to storage", "provider", provider.Name(), "error", err)
 		}
 	}
 }
 
 func (s *Service) HealthCheck(ctx context.Context) (err error) {
-	return s.options.storage.HealthCheck(ctx)
+	if err := s.options.storage.HealthCheck(ctx); err != nil {
+		s.options.logger.Error("service healthcheck failed", "error", err)
+		return err
+	}
+
+	s.options.logger.Info("service healthcheck passed")
+
+	return nil
 }
