@@ -23,7 +23,7 @@ func NewOptions() *Options {
 		token:      "", // not required for min api
 		httpClient: rest.NewClient(),
 		quote:      "USD",
-		currencies: []string{"BTC", "ETH", "TRX"}, //TODO: create custom type for codes
+		currencies: []string{"BTC", "ETH", "TRX"}, // TODO: create custom type for currency codes
 		logger:     log.NewSlog(),
 	}
 }
