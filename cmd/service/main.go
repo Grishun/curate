@@ -44,12 +44,12 @@ func main() {
 			&cli.StringFlag{
 				Name:    "rest-host",
 				Value:   "127.0.0.1",
-				Sources: namedEnv("HTTP_HOST"),
+				Sources: namedEnv("REST_HOST"),
 			},
 			&cli.StringFlag{
 				Name:    "rest-port",
 				Value:   "8080",
-				Sources: namedEnv("HTTP_PORT"),
+				Sources: namedEnv("REST_PORT"),
 			},
 			&cli.DurationFlag{
 				Name:    "polling-interval",
@@ -175,7 +175,7 @@ func run(ctx context.Context, c *cli.Command) error {
 	errCh := make(chan error, 1)
 
 	go func() {
-		addr := net.JoinHostPort(cfg.HTTPHost, cfg.HTTPPort)
+		addr := net.JoinHostPort(cfg.RestHost, cfg.RestPort)
 
 		logger.Info("starting rest server",
 			"addr", addr,

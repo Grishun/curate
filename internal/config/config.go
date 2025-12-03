@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	HTTPHost        string        `yaml:"http_host"`
-	HTTPPort        string        `yaml:"http_port"`
+	RestHost        string        `yaml:"rest_host"`
+	RestPort        string        `yaml:"rest_port"`
 	PollingInterval time.Duration `yaml:"polling_interval"`
 	Currencies      []string      `yaml:"currencies"`
 	Quote           string        `yaml:"quote"`
@@ -24,8 +24,8 @@ type Config struct {
 // New parse config from urfave/cli flags and create Config struct
 func New(c *cli.Command) *Config {
 	cfg := Config{
-		HTTPHost:        c.String("rest-host"),
-		HTTPPort:        c.String("rest-port"),
+		RestHost:        c.String("rest-host"),
+		RestPort:        c.String("rest-port"),
 		PollingInterval: c.Duration("polling-interval"),
 		Currencies:      c.StringSlice("currencies"),
 		Quote:           c.String("quote"),
