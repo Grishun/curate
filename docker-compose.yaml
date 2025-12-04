@@ -6,13 +6,13 @@ services:
     environment:
       CURATE_POLLING_INTERVAL: 10s
       CURATE_CURRENCIES: BTC,ETH,TRX,SOL
-      CURATE_HTTP_HOST: 0.0.0.0
-      CURATE_HTTP_PORT: 8080
+      CURATE_REST_HOST: 0.0.0.0
+      CURATE_REST_PORT: 8080
       CURATE_QUOTE: USD
       CURATE_HISTORY_LIMIT: 100
-      CURATE_COINDESK_URL: https://min-api.cryptocompare.com
+      CURATE_COINDESK_URI: https://min-api.cryptocompare.com
       CURATE_COINDESK_TOKEN:
-      CURATE_INFLUXDB_URL: http://influxdb3-dev:8181
+      CURATE_INFLUXDB_URI: http://influxdb3-dev:8181
       CURATE_INFLUXDB_TOKEN: dev-token
       CURATE_INFLUXDB_BUCKET: curate
 

@@ -11,3 +11,9 @@ docker-build:
 
 run:
 	@docker compose up -d
+
+down:
+	@docker compose down
+
+purge:
+	@docker compose down -v --remove-orphans

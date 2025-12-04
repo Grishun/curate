@@ -28,8 +28,8 @@ func New(opts ...Option) *Memory {
 }
 
 func (m *Memory) Get(_ context.Context, currency string, limit uint32) ([]domain.Rate, error) {
-	if limit > m.opts.historyLimit || limit < 1 {
-		limit = m.opts.historyLimit
+	if limit == 0 {
+		return make([]domain.Rate, 0), nil
 	}
 
 	m.mu.RLock()
@@ -50,8 +50,8 @@ func (m *Memory) Get(_ context.Context, currency string, limit uint32) ([]domain
 }
 
 func (m *Memory) GetAll(_ context.Context, limit uint32) (map[string][]domain.Rate, error) {
-	if limit > m.opts.historyLimit || limit < 1 {
-		limit = m.opts.historyLimit
+	if limit == 0 {
+		return make(map[string][]domain.Rate), nil
 	}
 
 	// create a new map to avoid race condition

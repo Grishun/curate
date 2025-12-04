@@ -15,11 +15,11 @@ All flags can be provided via CLI or env vars with prefix `CURATE_`.
 | `CURATE_POLLING_INTERVAL`  | `--polling-interval`  | Frequency of rate providers polling            | `10s`                               |
 | `CURATE_CURRENCIES`        | `--currencies`        | Comma‑separated list of currencies             | `BTC,ETH,TRX`                       |
 | `CURATE_QUOTE`             | `--quote`             | Quote currency                                 | `USD`                               |
-| `CURATE_HISTORY_LIMIT`     | `--history-limit`     | Max history points that the service can return | `10`                                |
-| `CURATE_COINDESK_URL`      | `--coindesk-url`      | Upstream price API base URL                    | `https://min-api.cryptocompare.com` |
+| `CURATE_HISTORY_LIMIT`     | `--history-limit`     | Max history points that the service can return | `100`                               |
+| `CURATE_COINDESK_URI`      | `--coindesk-uri`      | Upstream price API base URL                    | `https://min-api.cryptocompare.com` |
 | `CURATE_COINDESK_TOKEN`    | `--coindesk-token`    | Upstream API token (optional)                  | ``                                  |
 | `CURATE_IN_MEMORY_STORAGE` | `--in-memory-storage` | Use in-memory storage instead of InfluxDB      | `false`                             |
-| `CURATE_INFLUXDB_URL`      | `--influxdb-uri`      | InfluxDB URL                                   | `http://127.0.0.1:8181`             |
+| `CURATE_INFLUXDB_URI`      | `--influxdb-uri`      | InfluxDB URL                                   | `http://127.0.0.1:8181`             |
 | `CURATE_INFLUXDB_TOKEN`    | `--influxdb-token`    | InfluxDB token (not required if auth disabled) | `dev-token`                         |
 | `CURATE_INFLUXDB_BUCKET`   | `--influxdb-bucket`   | InfluxDB bucket/database                       | `curate`                            |
 

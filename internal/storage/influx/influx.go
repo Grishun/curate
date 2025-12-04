@@ -3,7 +3,6 @@ package influx
 import (
 	"context"
 	"fmt"
-	http2 "net/http"
 	"strings"
 	"time"
 
@@ -76,34 +75,12 @@ func (c *Client) Insert(ctx context.Context, rates ...domain.Rate) error {
 }
 
 func (c *Client) HealthCheck(ctx context.Context) error {
-	c.options.logger.Debug("running influx healthcheck")
+	query := fmt.Sprintf(`SELECT %s FROM information_schema.tables`, c.options.database)
 
-	resp, err := c.httpClient.Do(ctx,
-		rest.WithURI(c.options.hostURI+"/api/v3/databases"),
-		rest.WithMethod(http2.MethodGet),
-	)
-
+	_, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
-		c.options.logger.Error("influx databases check failed", "error", err)
+		c.options.logger.Error("influx health check failed", "error", err)
 		return err
-	}
-	if resp.StatusCode != http2.StatusOK {
-		c.options.logger.Error("influx databases endpoint not ready", "status", resp.StatusCode)
-		return ErrInfluxNotReady
-	}
-
-	resp, err = c.httpClient.Do(ctx,
-		rest.WithURI(c.options.hostURI+"/ping"),
-		rest.WithMethod(http2.MethodGet),
-	)
-
-	if err != nil {
-		c.options.logger.Error("influx ping failed", "error", err)
-		return err
-	}
-	if resp.StatusCode != http2.StatusOK {
-		c.options.logger.Error("influx ping endpoint not ready", "status", resp.StatusCode)
-		return ErrInfluxNotReady
 	}
 
 	c.options.logger.Debug("influx is up and ready")

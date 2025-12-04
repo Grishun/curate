@@ -68,13 +68,13 @@ func main() {
 			},
 			&cli.Uint32Flag{
 				Name:    "history-limit",
-				Value:   10,
+				Value:   100,
 				Sources: namedEnv("HISTORY_LIMIT"),
 			},
 			&cli.StringFlag{
-				Name:    "coindesk-url",
+				Name:    "coindesk-uri",
 				Value:   "https://min-api.cryptocompare.com",
-				Sources: namedEnv("COINDESK_URL"),
+				Sources: namedEnv("COINDESK_URI"),
 			},
 			&cli.StringFlag{
 				Name:    "coindesk-token",
@@ -90,7 +90,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "influxdb-uri",
 				Value:   "http://127.0.0.1:8181",
-				Sources: namedEnv("INFLUXDB_URL"),
+				Sources: namedEnv("INFLUXDB_URI"),
 			},
 			&cli.StringFlag{
 				Name:    "influxdb-token",
@@ -124,7 +124,7 @@ func run(ctx context.Context, c *cli.Command) error {
 	)
 
 	provider := coindesk.New(
-		coindesk.WithURI(cfg.CoindeskURL),
+		coindesk.WithURI(cfg.CoindeskURI),
 		coindesk.WithToken(cfg.CoindeskToken),
 		coindesk.WithQuote(cfg.Quote),
 		coindesk.WithCurrencies(cfg.Currencies...),

@@ -12,7 +12,7 @@ type Config struct {
 	PollingInterval time.Duration `yaml:"polling_interval"`
 	Currencies      []string      `yaml:"currencies"`
 	Quote           string        `yaml:"quote"`
-	CoindeskURL     string        `yaml:"coindesk_url"`
+	CoindeskURI     string        `yaml:"coindesk_uri"`
 	CoindeskToken   string        `yaml:"coindesk_token"`
 	HistoryLimit    uint32        `yaml:"history_limit"`
 	InfluxDBURI     string        `yaml:"influxdb_uri"`
@@ -29,7 +29,7 @@ func New(c *cli.Command) *Config {
 		PollingInterval: c.Duration("polling-interval"),
 		Currencies:      c.StringSlice("currencies"),
 		Quote:           c.String("quote"),
-		CoindeskURL:     c.String("coindesk-url"),
+		CoindeskURI:     c.String("coindesk-uri"),
 		CoindeskToken:   c.String("coindesk-token"),
 		HistoryLimit:    c.Uint32("history-limit"),
 		InfluxDBURI:     c.String("influxdb-uri"),
