@@ -3,6 +3,7 @@ package influx
 import (
 	"context"
 	"fmt"
+	http2 "net/http"
 	"strings"
 	"time"
 
@@ -75,12 +76,28 @@ func (c *Client) Insert(ctx context.Context, rates ...domain.Rate) error {
 }
 
 func (c *Client) HealthCheck(ctx context.Context) error {
-	query := fmt.Sprintf(`SELECT %s FROM information_schema.tables`, c.options.database)
+	resp, err := c.httpClient.Do(ctx,
+		rest.WithURI(c.options.hostURI+"/health"),
+		rest.WithMethod(http2.MethodGet),
+	)
 
-	_, err := c.client.Query(ctx, query, influx.WithQueryType(influx.InfluxQL))
 	if err != nil {
-		c.options.logger.Error("influx health check failed", "error", err)
 		return err
+	}
+	if resp.StatusCode != http2.StatusOK {
+		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
+	}
+
+	resp, err = c.httpClient.Do(ctx,
+		rest.WithURI(c.options.hostURI+"/ping"),
+		rest.WithMethod(http2.MethodGet),
+	)
+
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http2.StatusOK {
+		return fmt.Errorf("unexpected status code (%d) from %s", resp.StatusCode, resp.Request.URL)
 	}
 
 	c.options.logger.Debug("influx is up and ready")
