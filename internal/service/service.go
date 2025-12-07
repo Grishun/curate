@@ -7,11 +7,20 @@ import (
 
 	"github.com/Grishun/curate/internal/domain"
 	"github.com/go-co-op/gocron/v2"
+	"github.com/google/uuid"
+	syncmap "github.com/zolstein/sync-map"
 )
 
+type Subscription struct {
+	Currency string
+	Provider *string
+	ID       uuid.UUID
+}
+
 type Service struct {
-	options   *Options
-	scheduler gocron.Scheduler
+	options       *Options
+	scheduler     gocron.Scheduler
+	subscriptions syncmap.Map[Subscription, chan domain.Rate]
 }
 
 func New(opts ...Option) *Service {
@@ -30,8 +39,9 @@ func New(opts ...Option) *Service {
 	}
 
 	return &Service{
-		options:   options,
-		scheduler: scheduler,
+		options:       options,
+		scheduler:     scheduler,
+		subscriptions: syncmap.Map[Subscription, chan domain.Rate]{},
 	}
 }
 
@@ -47,8 +57,6 @@ func (s *Service) Start(ctx context.Context) error {
 		s.options.logger.Error("failed to schedule fetch job", "error", err)
 		return err
 	}
-
-	s.options.logger.Info("scheduled fetch job", "interval", s.options.pollingInterval)
 
 	s.scheduler.Start()
 	s.options.logger.Info("fetch scheduler started")
@@ -112,12 +120,32 @@ func (s *Service) fetchAndStore(ctx context.Context) {
 
 		rates := make([]domain.Rate, 0, len(result))
 		for currency, value := range result {
-			rates = append(rates, domain.Rate{
+			rate := domain.Rate{
 				Currency:  currency,
 				Quote:     s.options.quote,
 				Provider:  provider.Name(),
 				Timestamp: time.Now(),
 				Value:     value,
+			}
+
+			rates = append(rates, rate)
+
+			s.subscriptions.Range(func(sub Subscription, ch chan domain.Rate) bool {
+				if sub.Provider != nil && *sub.Provider != provider.Name() { // if we configuired a provider, we should return only this provider's rates
+					return true
+				}
+
+				if sub.Currency == currency {
+					select {
+					case <-ctx.Done():
+						return false
+					case ch <- rate:
+						s.options.logger.Debug("sending rate to subscription", "currency", currency)
+					default:
+					}
+				}
+
+				return true
 			})
 		}
 
@@ -127,6 +155,21 @@ func (s *Service) fetchAndStore(ctx context.Context) {
 			s.options.logger.Error("failed to insert rates to storage", "provider", provider.Name(), "error", err)
 		}
 	}
+}
+
+func (s *Service) SubscribeRate(ctx context.Context, sub Subscription) <-chan domain.Rate {
+	subCh, ok := s.subscriptions.LoadOrStore(sub, make(chan domain.Rate))
+
+	if !ok {
+		s.options.logger.Debug("new subscription", "currency", sub.Currency, "id", sub.ID)
+		go func() {
+			<-ctx.Done()
+			s.subscriptions.Delete(sub)
+			close(subCh)
+		}()
+	}
+
+	return subCh
 }
 
 func (s *Service) HealthCheck(ctx context.Context) (err error) {

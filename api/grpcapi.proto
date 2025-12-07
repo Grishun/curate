@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package curate;
+
+option go_package = "github.com/Grishun/curate/transport/grpc/generated";
+
+service RatesService {
+  rpc SubscribeRate(SubscribeRateRequest) returns (stream SubscribeRateResponse);
+}
+
+message SubscribeRateRequest {
+  string currency = 1;
+  string user_id = 2;
+  optional string provider = 3;
+}
+
+message SubscribeRateResponse {
+  double rate = 1;
+  string user_id = 2;
+  int64 received_at = 3;
+}
+
+

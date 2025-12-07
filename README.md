@@ -10,8 +10,8 @@ All flags can be provided via CLI or env vars with prefix `CURATE_`.
 
 | Env Var                    | CLI Flag              | Purpose                                        | Default                             |
 |----------------------------|-----------------------|------------------------------------------------|-------------------------------------|
-| `CURATE_REST_HOST`         | `--rest-host`         | HTTP server host                               | `127.0.0.1`                         |
-| `CURATE_REST_PORT`         | `--rest-port`         | HTTP server port                               | `8080`                              |
+| `CURATE_REST_HOST`         | `--rest-host`         | rest server host                               | `127.0.0.1`                         |
+| `CURATE_REST_PORT`         | `--rest-port`         | rest server port                               | `8080`                              |
 | `CURATE_POLLING_INTERVAL`  | `--polling-interval`  | Frequency of rate providers polling            | `10s`                               |
 | `CURATE_CURRENCIES`        | `--currencies`        | Comma‑separated list of currencies             | `BTC,ETH,TRX`                       |
 | `CURATE_QUOTE`             | `--quote`             | Quote currency                                 | `USD`                               |

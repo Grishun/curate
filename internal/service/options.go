@@ -61,7 +61,7 @@ func NewOptions() *Options {
 		logger:          log.NewSlog(),
 		storage:         memory.New(),
 		providers:       []domain.Provider{coindesk.New()},
-		pollingInterval: time.Minute,
+		pollingInterval: time.Second * 10,
 		quote:           "USD",
 	}
 }

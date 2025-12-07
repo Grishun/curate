@@ -8,6 +8,8 @@ services:
       CURATE_CURRENCIES: BTC,ETH,TRX,SOL
       CURATE_REST_HOST: 0.0.0.0
       CURATE_REST_PORT: 8080
+      CURATE_GRPC_HOST: 0.0.0.0
+      CURATE_GRPC_PORT: 8081
       CURATE_QUOTE: USD
       CURATE_HISTORY_LIMIT: 100
       CURATE_COINDESK_URI: https://min-api.cryptocompare.com

@@ -13,6 +13,7 @@ import (
 	"github.com/Grishun/curate/internal/domain"
 	"github.com/Grishun/curate/internal/storage/influx"
 	"github.com/Grishun/curate/internal/storage/memory"
+	"github.com/Grishun/curate/internal/transport/grpc"
 	"github.com/urfave/cli/v3"
 
 	"github.com/Grishun/curate/internal/config"
@@ -50,6 +51,16 @@ func main() {
 				Name:    "rest-port",
 				Value:   "8080",
 				Sources: namedEnv("REST_PORT"),
+			},
+			&cli.StringFlag{
+				Name:    "grpc-host",
+				Value:   "127.0.0.1",
+				Sources: namedEnv("GRPC_HOST"),
+			},
+			&cli.StringFlag{
+				Name:    "grpc-port",
+				Value:   "8081",
+				Sources: namedEnv("GRPC_PORT"),
 			},
 			&cli.DurationFlag{
 				Name:    "polling-interval",
@@ -135,6 +146,7 @@ func run(ctx context.Context, c *cli.Command) error {
 	var (
 		storage domain.Storage
 		err     error
+		errCh   = make(chan error)
 	)
 
 	if cfg.InMemoryStorage {
@@ -163,6 +175,7 @@ func run(ctx context.Context, c *cli.Command) error {
 	go func() {
 		if err := svc.Start(ctx); err != nil {
 			logger.Error("service failed to start", "error", err)
+			errCh <- err
 		}
 	}()
 
@@ -172,7 +185,20 @@ func run(ctx context.Context, c *cli.Command) error {
 		http.WithRouterLogger(logger),
 		http.WithRouterCurrencies(cfg.Currencies),
 	)
-	errCh := make(chan error, 1)
+
+	grpcServer := grpc.NewServer(
+		grpc.WithHost(cfg.GRPCHost),
+		grpc.WithPort(cfg.GRPCPort),
+		grpc.WithService(svc),
+		grpc.WithLogger(logger),
+	)
+
+	go func() {
+		if err := grpcServer.Run(ctx); err != nil {
+			logger.Error("grpc server down", "error", err)
+			errCh <- err
+		}
+	}()
 
 	go func() {
 		addr := net.JoinHostPort(cfg.RestHost, cfg.RestPort)
@@ -200,6 +226,7 @@ func run(ctx context.Context, c *cli.Command) error {
 		if err := <-errCh; err != nil && ctx.Err() == nil {
 			return err
 		}
+
 	case err := <-errCh:
 		if err != nil {
 			return err
