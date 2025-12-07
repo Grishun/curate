@@ -21,7 +21,7 @@ func NewSlog(opts ...Option) *SlogProvider {
 	return &SlogProvider{lg}
 }
 
-// ----- wrappers -----
+// ---------- wrappers ----------
 
 func (l *SlogProvider) Errorf(format string, v ...any) {
 	l.Error(fmt.Sprintf(format, v...))

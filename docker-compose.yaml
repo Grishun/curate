@@ -1,13 +1,18 @@
 services:
   curate:
+    depends_on:
+      - influxdb3-core
     build: .
     ports:
       - "8080:8080"
+      - "8081:8081"
     environment:
       CURATE_POLLING_INTERVAL: 10s
       CURATE_CURRENCIES: BTC,ETH,TRX,SOL
       CURATE_REST_HOST: 0.0.0.0
       CURATE_REST_PORT: 8080
+      CURATE_GRPC_HOST: 0.0.0.0
+      CURATE_GRPC_PORT: 8081
       CURATE_QUOTE: USD
       CURATE_HISTORY_LIMIT: 100
       CURATE_COINDESK_URI: https://min-api.cryptocompare.com
@@ -35,6 +40,23 @@ services:
       INFLUXDB3_NODE_IDENTIFIER: 00
       INFLUXDB3_OBJECT_STORE: file
 
+  grafana:
+    image: grafana/grafana:12.1
+    container_name: grafana
+    depends_on:
+      - influxdb3-core
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/curate-rates.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+      - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
+
 volumes:
   influxdb3_data:
   influxdb3_plugins:
+  grafana_data:

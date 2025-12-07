@@ -9,6 +9,8 @@ import (
 type Config struct {
 	RestHost        string        `yaml:"rest_host"`
 	RestPort        string        `yaml:"rest_port"`
+	GRPCHost        string        `yaml:"grpc_host"`
+	GRPCPort        string        `yaml:"grpc_port"`
 	PollingInterval time.Duration `yaml:"polling_interval"`
 	Currencies      []string      `yaml:"currencies"`
 	Quote           string        `yaml:"quote"`
@@ -26,6 +28,8 @@ func New(c *cli.Command) *Config {
 	cfg := Config{
 		RestHost:        c.String("rest-host"),
 		RestPort:        c.String("rest-port"),
+		GRPCHost:        c.String("grpc-host"),
+		GRPCPort:        c.String("grpc-port"),
 		PollingInterval: c.Duration("polling-interval"),
 		Currencies:      c.StringSlice("currencies"),
 		Quote:           c.String("quote"),
