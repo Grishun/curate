@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: Curate InfluxDB
+    uid: curate-influx
+    type: influxdb
+    access: proxy
+    url: http://influxdb3-dev:8181
+    database: curate
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMode: POST
+      version: InfluxQL

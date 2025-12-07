@@ -1,5 +1,7 @@
 services:
   curate:
+    depends_on:
+      - influxdb3-core
     build: .
     ports:
       - "8080:8080"
@@ -38,6 +40,23 @@ services:
       INFLUXDB3_NODE_IDENTIFIER: 00
       INFLUXDB3_OBJECT_STORE: file
 
+  grafana:
+    image: grafana/grafana:12.1
+    container_name: grafana
+    depends_on:
+      - influxdb3-core
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/curate-overview.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+      - ./configs/grafana/dashboards:/var/lib/grafana/dashboards
+
 volumes:
   influxdb3_data:
   influxdb3_plugins:
+  grafana_data:
