@@ -75,7 +75,7 @@
       "pluginVersion": "12.1.4",
       "targets": [
         {
-          "query": "SELECT * FROM /.*/ ORDER BY time DESC",
+          "query": "SELECT * FROM /.*/ ORDER BY time ASC",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series"
