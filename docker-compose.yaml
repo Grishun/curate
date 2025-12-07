@@ -3,6 +3,7 @@ services:
     build: .
     ports:
       - "8080:8080"
+      - "8081:8081"
     environment:
       CURATE_POLLING_INTERVAL: 10s
       CURATE_CURRENCIES: BTC,ETH,TRX,SOL
