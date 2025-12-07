@@ -10,14 +10,12 @@ service RatesService {
 
 message SubscribeRateRequest {
   string currency = 1;
-  string user_id = 2;
-  optional string provider = 3;
+  optional string provider = 2;
 }
 
 message SubscribeRateResponse {
   double rate = 1;
-  string user_id = 2;
-  int64 received_at = 3;
+  int64 received_at = 2;
 }
 
 

@@ -2,14 +2,12 @@ package grpc
 
 import (
 	"github.com/Grishun/curate/internal/transport/grpc/generated"
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
 	grpcClient generated.RatesServiceClient
-	uuid       uuid.UUID
 	options    *ClientOptions
 	conn       *grpc.ClientConn
 }
@@ -34,7 +32,6 @@ func NewClient(opts ...ClientOption) (*Client, error) {
 
 	return &Client{
 		grpcClient: generated.NewRatesServiceClient(conn),
-		uuid:       uuid.New(),
 		options:    options,
 		conn:       conn,
 	}, nil

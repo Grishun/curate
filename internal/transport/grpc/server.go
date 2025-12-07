@@ -58,8 +58,6 @@ func (s *Server) Run(ctx context.Context) error {
 	case err := <-errCh:
 		return err
 	}
-
-	return nil
 }
 
 func (s *Server) Stop() {

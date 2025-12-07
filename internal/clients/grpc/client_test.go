@@ -2,10 +2,13 @@ package grpc
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/Grishun/curate/internal/provider/coindesk"
 	"github.com/Grishun/curate/internal/service"
 	"github.com/Grishun/curate/internal/transport/grpc"
 	"github.com/Grishun/curate/internal/transport/grpc/generated"
@@ -15,7 +18,18 @@ import (
 func TestGRPCClient(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
-	svc := service.New(service.WithPollingInterval(time.Second))
+
+	mockedCoinDesk := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"BTC":{"USD":91194.7},"ETH":{"USD":3050.22},"TRX":{"USD":0.2813}}`))
+	}))
+	defer mockedCoinDesk.Close()
+	svc := service.New(
+		service.WithPollingInterval(time.Second),
+		service.WithProviders(coindesk.New(coindesk.WithURI(mockedCoinDesk.URL))),
+	)
+
 	go svc.Start(ctx)
 	defer svc.Stop(ctx)
 
@@ -58,17 +72,7 @@ func TestGRPCClient(t *testing.T) {
 			},
 			expectedMessages: 0,
 			expectedError:    false,
-			name:             "invalid-currency",
-		},
-
-		{
-			request: &generated.SubscribeRateRequest{
-				Currency: "BTC",
-				UserId:   "cecwzxa",
-			},
-			expectedMessages: 0,
-			expectedError:    true,
-			name:             "invlid-user-id",
+			name:             "invalid-USD",
 		},
 	}
 
@@ -86,10 +90,6 @@ func TestGRPCClient(t *testing.T) {
 
 			client, err := NewClient(WithServerAddr(server.Address()))
 			require.NoError(t, err)
-
-			if req.request.UserId == "" {
-				req.request.UserId = client.uuid.String()
-			}
 
 			stream, err := client.grpcClient.SubscribeRate(ctx, req.request)
 			require.NoError(t, err)

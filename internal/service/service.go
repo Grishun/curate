@@ -7,14 +7,12 @@ import (
 
 	"github.com/Grishun/curate/internal/domain"
 	"github.com/go-co-op/gocron/v2"
-	"github.com/google/uuid"
 	syncmap "github.com/zolstein/sync-map"
 )
 
 type Subscription struct {
 	Currency string
 	Provider *string
-	ID       uuid.UUID
 }
 
 type Service struct {
@@ -161,7 +159,7 @@ func (s *Service) SubscribeRate(ctx context.Context, sub Subscription) <-chan do
 	subCh, ok := s.subscriptions.LoadOrStore(sub, make(chan domain.Rate))
 
 	if !ok {
-		s.options.logger.Debug("new subscription", "currency", sub.Currency, "id", sub.ID)
+		s.options.logger.Debug("new subscription", "currency", sub.Currency)
 		go func() {
 			<-ctx.Done()
 			s.subscriptions.Delete(sub)

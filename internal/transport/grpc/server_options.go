@@ -6,8 +6,7 @@ import (
 	"github.com/Grishun/curate/internal/service"
 )
 
-// ------------ grpc server options ------------
-
+// ServerOption grpc server option
 type ServerOption func(*ServerOptions)
 
 type ServerOptions struct {

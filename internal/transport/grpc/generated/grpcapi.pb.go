@@ -24,8 +24,7 @@ const (
 type SubscribeRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Currency      string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Provider      *string                `protobuf:"bytes,3,opt,name=provider,proto3,oneof" json:"provider,omitempty"`
+	Provider      *string                `protobuf:"bytes,2,opt,name=provider,proto3,oneof" json:"provider,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -67,13 +66,6 @@ func (x *SubscribeRateRequest) GetCurrency() string {
 	return ""
 }
 
-func (x *SubscribeRateRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
 func (x *SubscribeRateRequest) GetProvider() string {
 	if x != nil && x.Provider != nil {
 		return *x.Provider
@@ -84,8 +76,7 @@ func (x *SubscribeRateRequest) GetProvider() string {
 type SubscribeRateResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Rate          float64                `protobuf:"fixed64,1,opt,name=rate,proto3" json:"rate,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ReceivedAt    int64                  `protobuf:"varint,3,opt,name=received_at,json=receivedAt,proto3" json:"received_at,omitempty"`
+	ReceivedAt    int64                  `protobuf:"varint,2,opt,name=received_at,json=receivedAt,proto3" json:"received_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -127,13 +118,6 @@ func (x *SubscribeRateResponse) GetRate() float64 {
 	return 0
 }
 
-func (x *SubscribeRateResponse) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
 func (x *SubscribeRateResponse) GetReceivedAt() int64 {
 	if x != nil {
 		return x.ReceivedAt
@@ -145,16 +129,14 @@ var File_grpcapi_proto protoreflect.FileDescriptor
 
 const file_grpcapi_proto_rawDesc = "" +
 	"\n" +
-	"\rgrpcapi.proto\x12\x06curate\"y\n" +
+	"\rgrpcapi.proto\x12\x06curate\"`\n" +
 	"\x14SubscribeRateRequest\x12\x1a\n" +
-	"\bcurrency\x18\x01 \x01(\tR\bcurrency\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1f\n" +
-	"\bprovider\x18\x03 \x01(\tH\x00R\bprovider\x88\x01\x01B\v\n" +
-	"\t_provider\"e\n" +
+	"\bcurrency\x18\x01 \x01(\tR\bcurrency\x12\x1f\n" +
+	"\bprovider\x18\x02 \x01(\tH\x00R\bprovider\x88\x01\x01B\v\n" +
+	"\t_provider\"L\n" +
 	"\x15SubscribeRateResponse\x12\x12\n" +
-	"\x04rate\x18\x01 \x01(\x01R\x04rate\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1f\n" +
-	"\vreceived_at\x18\x03 \x01(\x03R\n" +
+	"\x04rate\x18\x01 \x01(\x01R\x04rate\x12\x1f\n" +
+	"\vreceived_at\x18\x02 \x01(\x03R\n" +
 	"receivedAt2^\n" +
 	"\fRatesService\x12N\n" +
 	"\rSubscribeRate\x12\x1c.curate.SubscribeRateRequest\x1a\x1d.curate.SubscribeRateResponse0\x01B4Z2github.com/Grishun/curate/transport/grpc/generatedb\x06proto3"
